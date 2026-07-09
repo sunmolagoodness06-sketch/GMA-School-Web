@@ -14,6 +14,7 @@ frontend/build/
 .env.local
 .env.production
 .env.test
+!.env.example
 
 # Logs
 logs/
@@ -33,7 +34,7 @@ Thumbs.db
 .history/
 
 # Lockfiles (optional — keep if you prefer committing lockfiles)
-package-lock.json
+!package-lock.json
 pnpm-lock.yaml
 
 # Dependency directories

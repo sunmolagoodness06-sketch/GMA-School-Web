@@ -145,6 +145,11 @@ a:hover {
   max-width: var(--container-max);
 }
 
+/* Offsets anchor-scroll targets so the fixed header doesn't cover them */
+.scroll-anchor {
+  scroll-margin-top: 110px;
+}
+
 /* Full-width utility for sections that need to span entire viewport */
 .container-full {
   width: 100%;

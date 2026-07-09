@@ -1,0 +1,60 @@
+.hero-illustration {
+  width: 100%;
+  height: auto;
+  max-width: 440px;
+}
+
+.hero-illustration-ring {
+  transform-origin: 220px 220px;
+  animation: heroRingSpin 40s linear infinite;
+}
+
+@keyframes heroRingSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.hero-illustration-cap {
+  animation: heroFloat 6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.hero-illustration-orbit-1 {
+  animation: heroFloat 5s ease-in-out infinite;
+  animation-delay: 0.3s;
+  transform-origin: 82px 100px;
+}
+
+.hero-illustration-orbit-2 {
+  animation: heroFloat 7s ease-in-out infinite;
+  animation-delay: 0.8s;
+  transform-origin: 366px 330px;
+}
+
+.hero-illustration-orbit-3 {
+  animation: heroFloat 5.5s ease-in-out infinite;
+  animation-delay: 1.2s;
+  transform-origin: 70px 300px;
+}
+
+.hero-illustration-orbit-4 {
+  animation: heroFloat 6.5s ease-in-out infinite;
+  animation-delay: 0.5s;
+  transform-origin: 380px 130px;
+}
+
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-illustration-ring,
+  .hero-illustration-cap,
+  .hero-illustration-orbit-1,
+  .hero-illustration-orbit-2,
+  .hero-illustration-orbit-3,
+  .hero-illustration-orbit-4 {
+    animation: none;
+  }
+}

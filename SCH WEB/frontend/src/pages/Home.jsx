@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import SVGIcon from '../components/icons/SVGIcon';
+import HeroIllustration from '../components/HeroIllustration';
 import './Home.css';
 
 const Home = () => {
@@ -99,32 +100,37 @@ const Home = () => {
         </div>
         <div className="container">
           <div className="hero-content">
-            <div className="hero-text fade-in">
-              <div className="hero-badge">
-                <SVGIcon name="star" size={16} />
-                <span>Ranked #1 International School in Lagos</span>
+            <div className="hero-main">
+              <div className="hero-text fade-in">
+                <div className="hero-badge">
+                  <SVGIcon name="star" size={16} />
+                  <span>Ranked #1 International School in Ibadan</span>
+                </div>
+                <h1 className="hero-title">
+                  Excellence in Education,
+                  <span className="text-gold"> Character in Life</span>
+                </h1>
+                <p className="hero-description lead">
+                  At GMA School, we nurture young minds from nursery through college,
+                  providing world-class education that prepares students for global success
+                  while building strong moral foundations for life.
+                </p>
+                <div className="hero-actions">
+                  <Link to="/admissions" className="btn btn-primary btn-xl">
+                    <SVGIcon name="arrowRight" size={20} />
+                    Apply Now
+                  </Link>
+                  <Link to="/contact" className="btn btn-outline btn-xl">
+                    <SVGIcon name="calendar" size={20} />
+                    Book a Tour
+                  </Link>
+                </div>
               </div>
-              <h1 className="hero-title">
-                Excellence in Education,
-                <span className="text-gold"> Character in Life</span>
-              </h1>
-              <p className="hero-description lead">
-                At GMA School, we nurture young minds from nursery through college, 
-                providing world-class education that prepares students for global success 
-                while building strong moral foundations for life.
-              </p>
-              <div className="hero-actions">
-                <Link to="/admissions" className="btn btn-primary btn-xl">
-                  <SVGIcon name="arrowRight" size={20} />
-                  Apply Now
-                </Link>
-                <Link to="/contact" className="btn btn-outline btn-xl">
-                  <SVGIcon name="calendar" size={20} />
-                  Book a Tour
-                </Link>
+              <div className="hero-visual scale-in stagger-2" aria-hidden="true">
+                <HeroIllustration />
               </div>
             </div>
-            <div className="hero-stats fade-in stagger-2">
+            <div className="hero-stats-bar fade-in stagger-2">
               {stats.map((stat, index) => (
                 <div key={index} className={`stat-item scale-in stagger-${index + 1}`}>
                   <div className="stat-icon">

@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import SVGIcon from '../components/icons/SVGIcon';
 
 const Academics = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const target = document.getElementById(location.hash.slice(1));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [location.hash]);
+
   return (
     <div className="academics" style={{ paddingTop: '100px', minHeight: '100vh' }}>
       <div className="container">
@@ -10,7 +21,7 @@ const Academics = () => {
           <p>Comprehensive education from nursery through college preparation.</p>
           
           <div style={{ display: 'grid', gap: '2rem', marginTop: '2rem' }}>
-            <div className="card">
+            <div className="card scroll-anchor" id="nursery">
               <div className="card-header">
                 <h3>
                   <SVGIcon name="lightbulb" size={24} />
@@ -28,7 +39,7 @@ const Academics = () => {
               </div>
             </div>
             
-            <div className="card">
+            <div className="card scroll-anchor" id="primary">
               <div className="card-header">
                 <h3>
                   <SVGIcon name="bookOpen" size={24} />
@@ -47,7 +58,7 @@ const Academics = () => {
               </div>
             </div>
             
-            <div className="card">
+            <div className="card scroll-anchor" id="secondary">
               <div className="card-header">
                 <h3>
                   <SVGIcon name="graduation" size={24} />
@@ -65,7 +76,7 @@ const Academics = () => {
               </div>
             </div>
             
-            <div className="card">
+            <div className="card scroll-anchor" id="college">
               <div className="card-header">
                 <h3>
                   <SVGIcon name="award" size={24} />
