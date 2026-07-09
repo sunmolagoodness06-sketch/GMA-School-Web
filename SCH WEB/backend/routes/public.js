@@ -1,6 +1,8 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Application from '../models/Application.js';
+import CareerApplication from '../models/CareerApplication.js';
+import { uploadAdmissionDocuments, uploadCoverLetter } from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -38,25 +40,20 @@ router.post('/contact', [
   }
 });
 
-// Application form submission
-router.post('/apply', [
-  // Basic student info validation
-  body('applicantName.firstName').trim().isLength({ min: 2 }).withMessage('First name is required'),
-  body('applicantName.lastName').trim().isLength({ min: 2 }).withMessage('Last name is required'),
+// Application form submission (multipart: text fields + document uploads)
+router.post('/apply', uploadAdmissionDocuments, [
+  body('firstName').trim().isLength({ min: 2 }).withMessage('First name is required'),
+  body('lastName').trim().isLength({ min: 2 }).withMessage('Last name is required'),
   body('dateOfBirth').isISO8601().withMessage('Valid date of birth is required'),
   body('gender').isIn(['male', 'female']).withMessage('Gender is required'),
-
-  // School application details
   body('divisionApplied').isIn(['nursery', 'primary', 'secondary', 'college']).withMessage('Please select a valid division'),
   body('classApplied').trim().notEmpty().withMessage('Class is required'),
   body('sessionApplied').trim().notEmpty().withMessage('Session is required'),
-
-  // Parent information validation
-  body('parentInfo.father.name').trim().isLength({ min: 2 }).withMessage('Father\'s name is required'),
-  body('parentInfo.father.email').isEmail().withMessage('Valid father\'s email is required'),
-  body('parentInfo.father.phone').trim().isLength({ min: 10 }).withMessage('Father\'s phone number is required'),
-  body('parentInfo.mother.name').trim().isLength({ min: 2 }).withMessage('Mother\'s name is required'),
-  body('parentInfo.mother.phone').trim().isLength({ min: 10 }).withMessage('Mother\'s phone number is required')
+  body('fatherName').trim().isLength({ min: 2 }).withMessage('Father\'s name is required'),
+  body('fatherEmail').isEmail().withMessage('Valid father\'s email is required'),
+  body('fatherPhone').trim().isLength({ min: 10 }).withMessage('Father\'s phone number is required'),
+  body('motherName').trim().isLength({ min: 2 }).withMessage('Mother\'s name is required'),
+  body('motherPhone').trim().isLength({ min: 10 }).withMessage('Mother\'s phone number is required')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -67,16 +64,75 @@ router.post('/apply', [
       });
     }
 
-    const applicationData = req.body;
+    const files = req.files || {};
+    const requiredDocs = {
+      passportPhoto: 'passport_photo',
+      birthCertificate: 'birth_certificate',
+      medicalCertificate: 'medical_report'
+    };
 
-    // Generate application number
+    const missingDocs = Object.keys(requiredDocs).filter((field) => !files[field]?.[0]);
+    if (missingDocs.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required documents: ${missingDocs.join(', ')}`
+      });
+    }
+
+    const documents = [];
+    const docFieldMap = {
+      birthCertificate: 'birth_certificate',
+      previousSchoolRecords: 'previous_result',
+      passportPhoto: 'passport_photo',
+      medicalCertificate: 'medical_report'
+    };
+
+    for (const [field, docType] of Object.entries(docFieldMap)) {
+      const file = files[field]?.[0];
+      if (file) {
+        documents.push({
+          type: docType,
+          fileName: file.originalname,
+          fileUrl: file.path
+        });
+      }
+    }
+
+    const {
+      firstName, middleName, lastName, dateOfBirth, gender,
+      divisionApplied, classApplied, sessionApplied,
+      fatherName, fatherEmail, fatherPhone,
+      motherName, motherEmail, motherPhone
+    } = req.body;
+
     const applicationNumber = await Application.generateApplicationNumber(
-      applicationData.sessionApplied || '2024/2025'
+      sessionApplied || '2024/2025'
     );
 
-    // Create application
     const application = new Application({
-      ...applicationData,
+      applicantName: {
+        firstName,
+        ...(middleName && { middleName }),
+        lastName
+      },
+      dateOfBirth,
+      gender,
+      divisionApplied,
+      classApplied,
+      sessionApplied,
+      parentInfo: {
+        father: {
+          name: fatherName,
+          email: fatherEmail,
+          phone: fatherPhone
+        },
+        mother: {
+          name: motherName,
+          phone: motherPhone,
+          ...(motherEmail && { email: motherEmail })
+        }
+      },
+      documents,
       applicationNumber,
       status: 'pending'
     });
@@ -86,8 +142,8 @@ router.post('/apply', [
     // TODO: Send confirmation email to parent
     console.log('Application submitted:', {
       applicationNumber,
-      studentName: `${applicationData.applicantName.firstName} ${applicationData.applicantName.lastName}`,
-      parentEmail: applicationData.parentInfo.father.email
+      studentName: `${firstName} ${lastName}`,
+      parentEmail: fatherEmail
     });
 
     res.status(201).json({
@@ -147,8 +203,8 @@ router.get('/application-status/:applicationNumber', async (req, res) => {
   }
 });
 
-// Career application submission
-router.post('/careers/apply', [
+// Career application submission (multipart: text fields + cover letter upload)
+router.post('/careers/apply', uploadCoverLetter, [
   body('fullName').trim().isLength({ min: 2 }).withMessage('Full name is required'),
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('phone').trim().isLength({ min: 10 }).withMessage('Phone number is required'),
@@ -164,10 +220,36 @@ router.post('/careers/apply', [
       });
     }
 
-    const careerData = req.body;
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'A cover letter file is required'
+      });
+    }
 
-    // TODO: Save to database and send confirmation email
-    console.log('Career application:', careerData);
+    const { fullName, email, phone, position, experience, education } = req.body;
+
+    const careerApplication = new CareerApplication({
+      fullName,
+      email,
+      phone,
+      position,
+      experience,
+      education,
+      coverLetter: {
+        fileName: req.file.originalname,
+        fileUrl: req.file.path
+      }
+    });
+
+    await careerApplication.save();
+
+    // TODO: Send confirmation email
+    console.log('Career application submitted:', {
+      id: careerApplication._id,
+      fullName,
+      position
+    });
 
     res.json({
       success: true,

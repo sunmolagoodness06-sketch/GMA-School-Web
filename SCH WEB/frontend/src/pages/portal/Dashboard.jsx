@@ -148,7 +148,7 @@ const Dashboard = () => {
           <div className="section-header">
             <h2>Recent Bills</h2>
             <Link to="/portal/bills" className="view-all">
-              View All <SVGIcon name="arrow-right" size="16" />
+              View All <SVGIcon name="arrowRight" size="16" />
             </Link>
           </div>
           
@@ -173,7 +173,7 @@ const Dashboard = () => {
               ))
             ) : (
               <div className="empty-state">
-                <SVGIcon name="check-circle" size="48" />
+                <SVGIcon name="checkCircle" size="48" />
                 <p>No outstanding bills</p>
               </div>
             )}
@@ -184,7 +184,7 @@ const Dashboard = () => {
           <div className="section-header">
             <h2>Recent Notices</h2>
             <Link to="/portal/notices" className="view-all">
-              View All <SVGIcon name="arrow-right" size="16" />
+              View All <SVGIcon name="arrowRight" size="16" />
             </Link>
           </div>
           

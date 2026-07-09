@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SVGIcon from '../components/icons/SVGIcon';
 import PageHeader from '../components/PageHeader';
+import { API_BASE_URL } from '../config/api';
 import './Contact.css';
 
 const initialFormData = {
@@ -30,7 +31,7 @@ const Contact = () => {
     setSubmitStatus(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/public/contact', {
+      const response = await fetch(`${API_BASE_URL}/public/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import SVGIcon from '../components/icons/SVGIcon';
 import PageHeader from '../components/PageHeader';
+import FileUploadField from '../components/FileUploadField';
+import { API_BASE_URL } from '../config/api';
 import './Careers.css';
 
 const initialFormData = {
@@ -9,12 +11,12 @@ const initialFormData = {
   phone: '',
   position: '',
   experience: '',
-  education: '',
-  coverLetter: ''
+  education: ''
 };
 
 const Careers = () => {
   const [formData, setFormData] = useState(initialFormData);
+  const [coverLetter, setCoverLetter] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -31,13 +33,16 @@ const Careers = () => {
     setIsSubmitting(true);
     setSubmitStatus(null);
 
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) payload.append(key, value);
+    });
+    if (coverLetter) payload.append('coverLetter', coverLetter);
+
     try {
-      const response = await fetch('http://localhost:5000/api/public/careers/apply', {
+      const response = await fetch(`${API_BASE_URL}/public/careers/apply`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        body: payload,
       });
 
       const result = await response.json();
@@ -46,6 +51,7 @@ const Careers = () => {
         setSubmitStatus('success');
         setSubmitMessage(result.message);
         setFormData(initialFormData);
+        setCoverLetter(null);
       } else {
         setSubmitStatus('error');
         setSubmitMessage(
@@ -238,17 +244,15 @@ const Careers = () => {
                     </select>
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Cover Letter *</label>
-                    <textarea
-                      name="coverLetter"
-                      value={formData.coverLetter}
-                      onChange={handleChange}
-                      className="form-textarea"
-                      placeholder="Tell us why you want to join GMA School and what you can bring to our team..."
-                      required
-                    ></textarea>
-                  </div>
+                  <FileUploadField
+                    label="Cover Letter"
+                    name="coverLetter"
+                    accept=".pdf,image/*"
+                    required
+                    hint="PDF or image, up to 5MB"
+                    file={coverLetter}
+                    onChange={setCoverLetter}
+                  />
 
                   <button
                     type="submit"

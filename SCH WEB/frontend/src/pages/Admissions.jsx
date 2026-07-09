@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import SVGIcon from '../components/icons/SVGIcon';
 import PageHeader from '../components/PageHeader';
+import FileUploadField from '../components/FileUploadField';
+import { API_BASE_URL } from '../config/api';
 import './Admissions.css';
 
 const initialFormData = {
@@ -20,8 +22,16 @@ const initialFormData = {
   motherPhone: ''
 };
 
+const initialFiles = {
+  passportPhoto: null,
+  birthCertificate: null,
+  medicalCertificate: null,
+  previousSchoolRecords: null
+};
+
 const Admissions = () => {
   const [formData, setFormData] = useState(initialFormData);
+  const [files, setFiles] = useState(initialFiles);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -33,43 +43,30 @@ const Admissions = () => {
     });
   };
 
+  const handleFileSelect = (name, file) => {
+    setFiles({
+      ...files,
+      [name]: file
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    const payload = {
-      applicantName: {
-        firstName: formData.firstName,
-        ...(formData.middleName && { middleName: formData.middleName }),
-        lastName: formData.lastName
-      },
-      dateOfBirth: formData.dateOfBirth,
-      gender: formData.gender,
-      divisionApplied: formData.divisionApplied,
-      classApplied: formData.classApplied,
-      sessionApplied: formData.sessionApplied,
-      parentInfo: {
-        father: {
-          name: formData.fatherName,
-          email: formData.fatherEmail,
-          phone: formData.fatherPhone
-        },
-        mother: {
-          name: formData.motherName,
-          phone: formData.motherPhone,
-          ...(formData.motherEmail && { email: formData.motherEmail })
-        }
-      }
-    };
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) payload.append(key, value);
+    });
+    Object.entries(files).forEach(([key, file]) => {
+      if (file) payload.append(key, file);
+    });
 
     try {
-      const response = await fetch('http://localhost:5000/api/public/apply', {
+      const response = await fetch(`${API_BASE_URL}/public/apply`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        body: payload,
       });
 
       const result = await response.json();
@@ -80,6 +77,7 @@ const Admissions = () => {
           `${result.message} Your application number is ${result.data?.applicationNumber}.`
         );
         setFormData(initialFormData);
+        setFiles(initialFiles);
       } else {
         setSubmitStatus('error');
         setSubmitMessage(
@@ -358,6 +356,45 @@ const Admissions = () => {
                       />
                     </div>
                   </div>
+
+                  <h4 className="admissions-form-section-title">Required Documents</h4>
+                  <p className="admissions-form-hint">JPG, PNG, or PDF, up to 5MB each.</p>
+
+                  <FileUploadField
+                    label="Passport Photograph"
+                    name="passportPhoto"
+                    accept="image/*"
+                    required
+                    file={files.passportPhoto}
+                    onChange={(file) => handleFileSelect('passportPhoto', file)}
+                  />
+
+                  <FileUploadField
+                    label="Birth Certificate"
+                    name="birthCertificate"
+                    accept="image/*,.pdf"
+                    required
+                    file={files.birthCertificate}
+                    onChange={(file) => handleFileSelect('birthCertificate', file)}
+                  />
+
+                  <FileUploadField
+                    label="Medical Certificate"
+                    name="medicalCertificate"
+                    accept="image/*,.pdf"
+                    required
+                    file={files.medicalCertificate}
+                    onChange={(file) => handleFileSelect('medicalCertificate', file)}
+                  />
+
+                  <FileUploadField
+                    label="Previous School Records"
+                    name="previousSchoolRecords"
+                    accept="image/*,.pdf"
+                    hint="If applicable"
+                    file={files.previousSchoolRecords}
+                    onChange={(file) => handleFileSelect('previousSchoolRecords', file)}
+                  />
 
                   <button
                     type="submit"
