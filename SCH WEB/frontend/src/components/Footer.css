@@ -5,6 +5,8 @@
   margin-top: auto;
   position: relative;
   overflow: hidden;
+  border-top: 3px solid transparent;
+  border-image: linear-gradient(90deg, var(--color-gold), var(--color-gold-light), var(--color-gold)) 1;
 }
 
 .footer::before {
@@ -22,11 +24,15 @@
 
 .footer-content {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr);
   gap: var(--space-12);
   padding: var(--space-20) 0 var(--space-16);
   position: relative;
   z-index: 2;
+}
+
+.footer-section {
+  min-width: 0;
 }
 
 .footer-section h4 {
@@ -231,6 +237,7 @@
   border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all var(--transition-fast);
+  min-width: 0;
 }
 
 .contact-item:hover {
@@ -252,8 +259,11 @@
 
 .contact-content {
   flex: 1;
+  min-width: 0;
   color: rgba(255, 255, 255, 0.8);
   line-height: var(--leading-relaxed);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .contact-content a {
@@ -328,6 +338,26 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+.newsletter-input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.newsletter-feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.newsletter-feedback-success {
+  color: var(--color-gold-light);
+}
+
+.newsletter-feedback-error {
+  color: #f4a3a3;
+}
+
 /* Enhanced Footer Bottom */
 .footer-bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -375,7 +405,7 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .footer-content {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-8);
   }
   
@@ -388,15 +418,19 @@
 
 @media (max-width: 768px) {
   .footer-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-8);
     padding: var(--space-16) 0 var(--space-12);
   }
 
   .newsletter-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-6);
     text-align: center;
+  }
+
+  .newsletter-feedback {
+    justify-content: center;
   }
 
   .input-group {

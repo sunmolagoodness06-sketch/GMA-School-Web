@@ -1,0 +1,137 @@
+.academic-divisions {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.academic-division-card {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-light);
+}
+
+.academic-division-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-8);
+  background: linear-gradient(135deg, var(--color-navy), var(--color-navy-light));
+  color: var(--color-white);
+}
+
+.academic-division-header h3 {
+  color: var(--color-white);
+  margin-bottom: var(--space-1);
+}
+
+.academic-division-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(10px);
+}
+
+.academic-division-age {
+  display: inline-block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.academic-division-body {
+  padding: var(--space-8);
+}
+
+.academic-division-body > p {
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-5);
+}
+
+.academic-division-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.academic-division-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+.academic-division-list svg {
+  flex-shrink: 0;
+  color: var(--color-gold-dark);
+}
+
+/* Co-curricular */
+.co-curricular-grid {
+  gap: var(--space-6);
+}
+
+.co-curricular-card {
+  padding: var(--space-6);
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+
+.co-curricular-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.co-curricular-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-4);
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light));
+  color: var(--color-white);
+  border-radius: var(--radius-lg);
+}
+
+.co-curricular-card h4 {
+  margin-bottom: var(--space-2);
+  color: var(--color-navy);
+}
+
+.co-curricular-card p {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+@media (max-width: 768px) {
+  .academic-division-header {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--space-6);
+  }
+
+  .academic-division-body {
+    padding: var(--space-6);
+  }
+
+  .academic-division-list {
+    grid-template-columns: 1fr;
+  }
+}

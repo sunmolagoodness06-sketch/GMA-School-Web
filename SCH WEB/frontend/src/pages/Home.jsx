@@ -30,25 +30,29 @@ const Home = () => {
       icon: 'graduation',
       title: 'Academic Excellence',
       description: 'Rigorous curriculum aligned with international standards, preparing students for global universities and future success.',
-      delay: 'stagger-1'
+      delay: 'stagger-1',
+      link: '/academics'
     },
     {
       icon: 'users',
       title: 'Character Development',
       description: 'Building strong moral values, leadership skills, and social responsibility in every student through comprehensive programs.',
-      delay: 'stagger-2'
+      delay: 'stagger-2',
+      link: '/about'
     },
     {
       icon: 'heart',
       title: 'Holistic Growth',
       description: 'Sports, arts, technology, and extracurricular activities for well-rounded development and personal discovery.',
-      delay: 'stagger-3'
+      delay: 'stagger-3',
+      link: '/academics#co-curricular'
     },
     {
       icon: 'building',
       title: 'Modern Facilities',
       description: 'State-of-the-art classrooms, laboratories, library, and technology infrastructure supporting innovative learning.',
-      delay: 'stagger-4'
+      delay: 'stagger-4',
+      link: '/contact'
     }
   ];
 
@@ -84,10 +88,28 @@ const Home = () => {
   ];
 
   const stats = [
-    { number: '15+', label: 'Years of Excellence', icon: 'calendar' },
+    { number: '12+', label: 'Years of Excellence', icon: 'calendar' },
     { number: '1000+', label: 'Successful Graduates', icon: 'users' },
     { number: '98%', label: 'University Admission', icon: 'trendingUp' },
     { number: '50+', label: 'Expert Teachers', icon: 'award' }
+  ];
+
+  const testimonials = [
+    {
+      quote: "GMA School has transformed my daughter's approach to learning. The teachers are exceptional, and the holistic development program has built her confidence tremendously.",
+      author: 'Mrs. Adebayo Johnson',
+      role: 'Parent of Sarah, Grade 8'
+    },
+    {
+      quote: "The international curriculum and modern facilities at GMA prepared my son excellently for university. He's now studying at Oxford University!",
+      author: 'Dr. Emmanuel Okafor',
+      role: 'Parent of Michael, Alumni'
+    },
+    {
+      quote: "From nursery to secondary school, GMA has been our family's educational home. The values and excellence they instill are unmatched.",
+      author: 'Mrs. Fatima Al-Hassan',
+      role: 'Parent of Amina & Ahmed'
+    }
   ];
 
   return (
@@ -111,7 +133,7 @@ const Home = () => {
                   <span className="text-gold"> Character in Life</span>
                 </h1>
                 <p className="hero-description lead">
-                  At GMA School, we nurture young minds from nursery through college,
+                  At Goodness & Mercy Academy (GMA), we nurture young minds from nursery through college,
                   providing world-class education that prepares students for global success
                   while building strong moral foundations for life.
                 </p>
@@ -159,7 +181,11 @@ const Home = () => {
           </div>
           <div className="features-grid grid grid-auto-fit">
             {features.map((feature, index) => (
-              <div key={index} className={`feature-card slide-up ${feature.delay}`}>
+              <Link
+                key={index}
+                to={feature.link}
+                className={`feature-card slide-up ${feature.delay}`}
+              >
                 <div className="feature-icon">
                   <SVGIcon name={feature.icon} size={32} />
                 </div>
@@ -168,9 +194,10 @@ const Home = () => {
                   <p>{feature.description}</p>
                 </div>
                 <div className="feature-arrow">
+                  <span>Learn More</span>
                   <SVGIcon name="arrowRight" size={20} />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -218,57 +245,40 @@ const Home = () => {
               Hear from our community of parents who trust us with their children's education and future.
             </p>
           </div>
-          <div className="testimonials-grid grid grid-auto-fit">
-            <div className="testimonial-card slide-up stagger-1">
-              <div className="testimonial-stars">
-                {[...Array(5)].map((_, i) => (
-                  <SVGIcon key={i} name="starFilled" size={16} color="var(--color-gold)" />
-                ))}
-              </div>
-              <blockquote>
-                "GMA School has transformed my daughter's approach to learning. The teachers are exceptional, 
-                and the holistic development program has built her confidence tremendously."
-              </blockquote>
-              <div className="testimonial-author">
-                <div className="author-info">
-                  <cite>Mrs. Adebayo Johnson</cite>
-                  <span>Parent of Sarah, Grade 8</span>
+          <div className="testimonials-marquee">
+            <div className="testimonials-track">
+              {testimonials.map((t, index) => (
+                <div className="testimonial-card" key={`a-${index}`}>
+                  <div className="testimonial-stars">
+                    {[...Array(5)].map((_, i) => (
+                      <SVGIcon key={i} name="starFilled" size={16} color="var(--color-gold)" />
+                    ))}
+                  </div>
+                  <blockquote>"{t.quote}"</blockquote>
+                  <div className="testimonial-author">
+                    <div className="author-info">
+                      <cite>{t.author}</cite>
+                      <span>{t.role}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="testimonial-card slide-up stagger-2">
-              <div className="testimonial-stars">
-                {[...Array(5)].map((_, i) => (
-                  <SVGIcon key={i} name="starFilled" size={16} color="var(--color-gold)" />
-                ))}
-              </div>
-              <blockquote>
-                "The international curriculum and modern facilities at GMA prepared my son excellently 
-                for university. He's now studying at Oxford University!"
-              </blockquote>
-              <div className="testimonial-author">
-                <div className="author-info">
-                  <cite>Dr. Emmanuel Okafor</cite>
-                  <span>Parent of Michael, Alumni</span>
+              ))}
+              {testimonials.map((t, index) => (
+                <div className="testimonial-card" key={`b-${index}`} aria-hidden="true">
+                  <div className="testimonial-stars">
+                    {[...Array(5)].map((_, i) => (
+                      <SVGIcon key={i} name="starFilled" size={16} color="var(--color-gold)" />
+                    ))}
+                  </div>
+                  <blockquote>"{t.quote}"</blockquote>
+                  <div className="testimonial-author">
+                    <div className="author-info">
+                      <cite>{t.author}</cite>
+                      <span>{t.role}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="testimonial-card slide-up stagger-3">
-              <div className="testimonial-stars">
-                {[...Array(5)].map((_, i) => (
-                  <SVGIcon key={i} name="starFilled" size={16} color="var(--color-gold)" />
-                ))}
-              </div>
-              <blockquote>
-                "From nursery to secondary school, GMA has been our family's educational home. 
-                The values and excellence they instill are unmatched."
-              </blockquote>
-              <div className="testimonial-author">
-                <div className="author-info">
-                  <cite>Mrs. Fatima Al-Hassan</cite>
-                  <span>Parent of Amina & Ahmed</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

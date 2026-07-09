@@ -19,10 +19,14 @@ import Admissions from './pages/Admissions';
 import Academics from './pages/Academics';
 import Careers from './pages/Careers';
 import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Sitemap from './pages/Sitemap';
 
 // Auth Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 
 // Portal Pages
 import Dashboard from './pages/portal/Dashboard';
@@ -49,10 +53,14 @@ function App() {
             <Route path="/academics" element={<PublicLayout><Academics /></PublicLayout>} />
             <Route path="/careers" element={<PublicLayout><Careers /></PublicLayout>} />
             <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
+            <Route path="/privacy" element={<PublicLayout><Privacy /></PublicLayout>} />
+            <Route path="/terms" element={<PublicLayout><Terms /></PublicLayout>} />
+            <Route path="/sitemap" element={<PublicLayout><Sitemap /></PublicLayout>} />
 
             {/* Authentication Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* Protected Portal Routes */}
             <Route path="/portal" element={

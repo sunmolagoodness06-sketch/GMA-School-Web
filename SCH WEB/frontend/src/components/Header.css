@@ -107,7 +107,7 @@
 .nav-desktop {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--space-2);
 }
 
 .nav-item {
@@ -121,11 +121,11 @@
   align-items: center;
   gap: var(--space-2);
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--color-text-primary);
   text-decoration: none;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   position: relative;
   transition: all var(--transition-fast);
@@ -430,23 +430,16 @@
 }
 
 @media (max-width: 1280px) {
-  .nav-desktop {
-    gap: var(--space-6);
-  }
-
-  .nav-link {
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--text-sm);
-  }
-
   .container {
     padding: 0 var(--padding-container-lg);
   }
 }
 
 /* Below this point, desktop nav + CTAs are replaced by the hamburger menu
-   in one switch so there is no dead zone where actions disappear. */
-@media (max-width: 1024px) {
+   in one switch so there is no dead zone where actions disappear. Threshold
+   is 1180 (not 1024) because the full logo + 6 nav links + 3 CTA buttons
+   need that much room before they comfortably fit in one row. */
+@media (max-width: 1180px) {
   .nav-desktop {
     display: none;
   }

@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SVGIcon from './icons/SVGIcon';
 import './Footer.css';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState(null);
+
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newsletterEmail);
+    if (!isValidEmail) {
+      setNewsletterStatus('error');
+      return;
+    }
+    setNewsletterStatus('success');
+    setNewsletterEmail('');
+  };
 
   const quickLinks = [
     { path: '/', label: 'Home', icon: 'building' },
@@ -16,10 +29,10 @@ const Footer = () => {
   ];
 
   const academicDivisions = [
-    { href: '/academics#nursery', label: 'Nursery & Early Years', icon: 'lightbulb' },
-    { href: '/academics#primary', label: 'Primary School', icon: 'bookOpen' },
-    { href: '/academics#secondary', label: 'Secondary School', icon: 'graduation' },
-    { href: '/academics#college', label: 'College / Sixth Form', icon: 'award' }
+    { path: '/academics#nursery', label: 'Nursery & Early Years', icon: 'lightbulb' },
+    { path: '/academics#primary', label: 'Primary School', icon: 'bookOpen' },
+    { path: '/academics#secondary', label: 'Secondary School', icon: 'graduation' },
+    { path: '/academics#college', label: 'College / Sixth Form', icon: 'award' }
   ];
 
   const socialLinks = [
@@ -68,8 +81,8 @@ const Footer = () => {
               </div>
             </div>
             <p className="footer-description">
-              Excellence in Education, Character in Life. 
-              Nurturing young minds for global success since 2008 with world-class 
+              Goodness and Mercy Academy (GMA) — Excellence in Education, Character in Life.
+              Nurturing young minds for global success since 2014 with world-class
               facilities and dedicated educators.
             </p>
             <div className="social-links">
@@ -115,10 +128,10 @@ const Footer = () => {
             <ul className="footer-links">
               {academicDivisions.map((division, index) => (
                 <li key={index}>
-                  <a href={division.href}>
+                  <Link to={division.path}>
                     <SVGIcon name={division.icon} size={16} />
                     {division.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -161,19 +174,37 @@ const Footer = () => {
               </h3>
               <p>Get the latest news, events, and updates from GMA School delivered to your inbox.</p>
             </div>
-            <div className="newsletter-form">
+            <form className="newsletter-form" onSubmit={handleNewsletterSubmit} noValidate>
               <div className="input-group">
-                <input 
-                  type="email" 
+                <input
+                  type="email"
+                  value={newsletterEmail}
+                  onChange={(e) => {
+                    setNewsletterEmail(e.target.value);
+                    setNewsletterStatus(null);
+                  }}
                   placeholder="Enter your email address"
                   className="newsletter-input"
+                  aria-invalid={newsletterStatus === 'error'}
                 />
-                <button className="btn btn-secondary">
+                <button type="submit" className="btn btn-secondary">
                   <SVGIcon name="arrowRight" size={16} />
                   Subscribe
                 </button>
               </div>
-            </div>
+              {newsletterStatus === 'success' && (
+                <p className="newsletter-feedback newsletter-feedback-success">
+                  <SVGIcon name="checkCircle" size={14} />
+                  Thanks for subscribing! Watch your inbox for updates.
+                </p>
+              )}
+              {newsletterStatus === 'error' && (
+                <p className="newsletter-feedback newsletter-feedback-error">
+                  <SVGIcon name="alert-circle" size={14} />
+                  Please enter a valid email address.
+                </p>
+              )}
+            </form>
           </div>
         </div>
 
@@ -185,18 +216,18 @@ const Footer = () => {
               <span>&copy; {currentYear} GMA School. All rights reserved.</span>
             </div>
             <div className="footer-bottom-links">
-              <a href="/privacy">
+              <Link to="/privacy">
                 <SVGIcon name="shield" size={14} />
                 Privacy Policy
-              </a>
-              <a href="/terms">
+              </Link>
+              <Link to="/terms">
                 <SVGIcon name="book" size={14} />
                 Terms of Service
-              </a>
-              <a href="/sitemap">
+              </Link>
+              <Link to="/sitemap">
                 <SVGIcon name="globe" size={14} />
                 Sitemap
-              </a>
+              </Link>
             </div>
           </div>
         </div>

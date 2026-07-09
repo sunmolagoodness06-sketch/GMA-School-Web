@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import SVGIcon from '../components/icons/SVGIcon';
+import AuthBranding from '../components/AuthBranding';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -52,57 +55,51 @@ const Register = () => {
       return;
     }
 
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-          regNumber: formData.regNumber,
-          studentName: formData.studentName
-        }),
-      });
+    const result = await register({
+      email: formData.email,
+      password: formData.password,
+      role: formData.role,
+      regNumber: formData.regNumber,
+      studentName: formData.studentName
+    });
 
-      const result = await response.json();
-
-      if (result.success) {
-        setSuccess(result.message);
-        // Redirect to login page after 2 seconds
-        setTimeout(() => {
-          navigate('/login', { 
-            state: { 
-              message: 'Account created successfully! Please log in with your credentials.' 
-            } 
-          });
-        }, 2000);
+    if (result.success) {
+      setSuccess(result.message);
+      // Redirect to login page after 2 seconds
+      setTimeout(() => {
+        navigate('/login', {
+          state: {
+            message: 'Account created successfully! Please log in with your credentials.'
+          }
+        });
+      }, 2000);
+    } else {
+      if (result.errors) {
+        setError(result.errors.map((err) => err.msg).join(', '));
       } else {
-        if (result.errors) {
-          setError(result.errors.map(err => err.msg).join(', '));
-        } else {
-          setError(result.message);
-        }
+        setError(result.message);
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setError('An error occurred during registration. Please try again.');
     }
 
     setIsLoading(false);
   };
 
   return (
-    <div className="login-page"> {/* Reusing login page styles */}
-      <div className="container">
+    <div className="login-page">
+      <AuthBranding
+        title="Join the GMA family"
+        description="Create your portal account to stay connected with your child's education, every step of the way."
+      />
+
+      <div className="login-form-panel">
         <div className="login-container">
+          <Link to="/" className="login-form-logo">
+            <SVGIcon name="graduation-cap" size={28} />
+            <span>GMA School</span>
+          </Link>
+
           <div className="login-header">
-            <div className="logo">
-              <SVGIcon name="graduation-cap" size="48" />
-              <h1>Create Portal Account</h1>
-            </div>
+            <h1>Create Account</h1>
             <p>Register to access the GMA School student portal</p>
           </div>
 
@@ -151,7 +148,7 @@ const Register = () => {
                 />
               </div>
               <small className="form-help">
-                {formData.role === 'student' 
+                {formData.role === 'student'
                   ? 'Use the parent email registered with the school'
                   : 'Use the email you provided to the school during admission'}
               </small>
@@ -236,8 +233,8 @@ const Register = () => {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary btn-full"
               disabled={isLoading}
             >
@@ -263,12 +260,12 @@ const Register = () => {
             </Link>
           </div>
 
-          <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
-            <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: '#1e40af' }}>
-              <SVGIcon name="help-circle" size="20" />
+          <div className="register-help">
+            <h4>
+              <SVGIcon name="help-circle" size={20} />
               Need Help?
             </h4>
-            <ul style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
+            <ul>
               <li>Students: Use your registration number and parent's email</li>
               <li>Parents: Use the email provided during admission</li>
               <li>Contact school administration if you can't find your details</li>

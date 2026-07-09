@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
+import SVGIcon from '../components/icons/SVGIcon';
+import PageHeader from '../components/PageHeader';
+import './Careers.css';
+
+const initialFormData = {
+  fullName: '',
+  email: '',
+  phone: '',
+  position: '',
+  experience: '',
+  education: '',
+  coverLetter: ''
+};
 
 const Careers = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    position: '',
-    experience: '',
-    education: '',
-    coverLetter: ''
-  });
-
+  const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
   const [submitMessage, setSubmitMessage] = useState('');
 
   const handleChange = (e) => {
@@ -24,7 +29,8 @@ const Careers = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+    setSubmitStatus(null);
+
     try {
       const response = await fetch('http://localhost:5000/api/public/careers/apply', {
         method: 'POST',
@@ -35,88 +41,112 @@ const Careers = () => {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
-        setSubmitMessage('Application submitted successfully! We will review and contact you soon.');
-        setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          position: '',
-          experience: '',
-          education: '',
-          coverLetter: ''
-        });
+        setSubmitStatus('success');
+        setSubmitMessage(result.message);
+        setFormData(initialFormData);
       } else {
-        setSubmitMessage('There was an error submitting your application. Please try again.');
+        setSubmitStatus('error');
+        setSubmitMessage(
+          result.errors?.map((err) => err.msg).join(', ') ||
+          result.message ||
+          'There was an error submitting your application. Please try again.'
+        );
       }
     } catch (error) {
+      setSubmitStatus('error');
       setSubmitMessage('There was an error submitting your application. Please try again.');
     }
-    
+
     setIsSubmitting(false);
   };
 
+  const benefits = [
+    {
+      icon: 'trendingUp',
+      title: 'Professional Growth',
+      description: 'Continuous professional development opportunities and career advancement.'
+    },
+    {
+      icon: 'users',
+      title: 'Collaborative Environment',
+      description: 'Work with passionate educators in a supportive and innovative environment.'
+    },
+    {
+      icon: 'award',
+      title: 'Competitive Benefits',
+      description: 'Attractive salary packages, health insurance, and other benefits.'
+    }
+  ];
+
+  const openings = [
+    'Mathematics Teacher (Secondary)',
+    'English Teacher (Primary)',
+    'Science Laboratory Assistant',
+    'ICT Coordinator',
+    'School Counselor',
+    'Administrative Assistant'
+  ];
+
   return (
-    <div className="careers" style={{ paddingTop: '100px', minHeight: '100vh' }}>
-      <div className="container">
-        <div className="section">
-          <h1>Join Our Team</h1>
-          <p>Be part of our mission to provide excellent education and shape young minds.</p>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', marginTop: '2rem' }}>
-            <div>
+    <div className="careers">
+      <PageHeader
+        title="Join Our Team"
+        description="Be part of our mission to provide excellent education and shape young minds."
+      />
+
+      <section className="section">
+        <div className="container">
+          <div className="careers-grid">
+            <div className="careers-info">
               <h2>Why Work at GMA School?</h2>
-              <div className="card" style={{ marginBottom: '1.5rem' }}>
-                <div className="card-body">
-                  <h4>Professional Growth</h4>
-                  <p>Continuous professional development opportunities and career advancement.</p>
-                </div>
+              <div className="careers-benefits">
+                {benefits.map((benefit) => (
+                  <div key={benefit.title} className="careers-benefit-card">
+                    <div className="careers-benefit-icon">
+                      <SVGIcon name={benefit.icon} size={24} />
+                    </div>
+                    <div>
+                      <h4>{benefit.title}</h4>
+                      <p>{benefit.description}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              
-              <div className="card" style={{ marginBottom: '1.5rem' }}>
-                <div className="card-body">
-                  <h4>Collaborative Environment</h4>
-                  <p>Work with passionate educators in a supportive and innovative environment.</p>
-                </div>
-              </div>
-              
-              <div className="card" style={{ marginBottom: '1.5rem' }}>
-                <div className="card-body">
-                  <h4>Competitive Benefits</h4>
-                  <p>Attractive salary packages, health insurance, and other benefits.</p>
-                </div>
-              </div>
-              
-              <h3>Current Openings</h3>
-              <ul style={{ marginLeft: '1.5rem', marginTop: '1rem' }}>
-                <li>Mathematics Teacher (Secondary)</li>
-                <li>English Teacher (Primary)</li>
-                <li>Science Laboratory Assistant</li>
-                <li>ICT Coordinator</li>
-                <li>School Counselor</li>
-                <li>Administrative Assistant</li>
+
+              <h3 className="careers-openings-title">
+                <SVGIcon name="briefcase" size={20} />
+                Current Openings
+              </h3>
+              <ul className="careers-openings-list">
+                {openings.map((role) => (
+                  <li key={role}>
+                    <SVGIcon name="check" size={16} />
+                    {role}
+                  </li>
+                ))}
               </ul>
             </div>
-            
-            <div className="card">
+
+            <div className="card careers-form-card">
               <div className="card-header">
                 <h3>Apply Now</h3>
               </div>
               <div className="card-body">
-                {submitMessage && (
-                  <div style={{ 
-                    padding: '1rem', 
-                    marginBottom: '1rem', 
-                    backgroundColor: '#f0f9ff', 
-                    border: '1px solid #0ea5e9',
-                    borderRadius: '8px',
-                    color: '#0c4a6e'
-                  }}>
-                    {submitMessage}
+                {submitStatus === 'success' && (
+                  <div className="success-message">
+                    <SVGIcon name="checkCircle" size={20} />
+                    <span>{submitMessage}</span>
                   </div>
                 )}
-                
+                {submitStatus === 'error' && (
+                  <div className="error-message">
+                    <SVGIcon name="alert-circle" size={20} />
+                    <span>{submitMessage}</span>
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit}>
                   <div className="form-group">
                     <label className="form-label">Full Name *</label>
@@ -129,7 +159,7 @@ const Careers = () => {
                       required
                     />
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Email *</label>
                     <input
@@ -141,7 +171,7 @@ const Careers = () => {
                       required
                     />
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Phone Number *</label>
                     <input
@@ -153,7 +183,7 @@ const Careers = () => {
                       required
                     />
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Position Applied For *</label>
                     <select
@@ -173,7 +203,7 @@ const Careers = () => {
                       <option value="other">Other</option>
                     </select>
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Years of Experience *</label>
                     <select
@@ -190,7 +220,7 @@ const Careers = () => {
                       <option value="10+">10+ years</option>
                     </select>
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Highest Education *</label>
                     <select
@@ -207,7 +237,7 @@ const Careers = () => {
                       <option value="diploma">Diploma/Certificate</option>
                     </select>
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Cover Letter *</label>
                     <textarea
@@ -219,10 +249,10 @@ const Careers = () => {
                       required
                     ></textarea>
                   </div>
-                  
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary"
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-full"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Submitting...' : 'Submit Application'}
@@ -232,7 +262,7 @@ const Careers = () => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

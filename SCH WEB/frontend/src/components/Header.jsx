@@ -99,7 +99,6 @@ const Header = () => {
                   to={link.path}
                   className={`nav-link ${location.pathname === link.path ? 'nav-link-active' : ''}`}
                 >
-                  <SVGIcon name={link.icon} size={16} />
                   {link.label}
                   {link.children && (
                     <SVGIcon name="chevronDown" size={14} className="nav-link-chevron" />
