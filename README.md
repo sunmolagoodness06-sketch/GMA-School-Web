@@ -23,6 +23,15 @@ SCH WEB/
 
 ## Getting Started
 
+### Clone the Repository
+
+To clone this project from GitHub on another computer, run:
+
+```bash
+git clone https://github.com/sunmolagoodness06-sketch/GMA-School-Web.git
+cd GMA-School-Web
+```
+
 ### Prerequisites
 
 - Node.js (v18 or higher recommended)
