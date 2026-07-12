@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import SVGIcon from './icons/SVGIcon';
+import SchoolCrest from './SchoolCrest';
 import './Header.css';
 
 const Header = () => {
@@ -79,9 +80,7 @@ const Header = () => {
         <div className="header-content">
           {/* Logo */}
           <Link to="/" className="logo">
-            <div className="logo-icon">
-              <SVGIcon name="graduation" size={32} />
-            </div>
+            <SchoolCrest size={48} className="logo-crest" />
             <div className="logo-text">
               <span className="logo-main">GMA</span>
               <span className="logo-sub">School</span>

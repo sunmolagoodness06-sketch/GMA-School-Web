@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import SVGIcon from '../components/icons/SVGIcon';
 import HeroIllustration from '../components/HeroIllustration';
+import SEO from '../components/SEO';
 import './Home.css';
 
 const Home = () => {
@@ -114,6 +115,7 @@ const Home = () => {
 
   return (
     <div className="home">
+      <SEO description="Goodness and Mercy Academy — excellence in education, character in life. Nursery through college preparation in Ibadan, Nigeria." />
       {/* Hero Section */}
       <section className="hero" ref={heroRef}>
         <div className="hero-background">

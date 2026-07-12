@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 const Privacy = () => {
   return (
     <div className="privacy" style={{ paddingTop: '100px', minHeight: '100vh' }}>
+      <SEO title="Privacy Policy" description="How Goodness and Mercy Academy collects, uses, and protects your information." />
       <div className="container">
         <div className="section">
           <h1>Privacy Policy</h1>

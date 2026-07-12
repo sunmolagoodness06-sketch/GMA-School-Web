@@ -45,38 +45,8 @@
   transform: scale(1.05);
 }
 
-.logo-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, var(--color-navy), var(--color-navy-light));
-  border-radius: var(--radius-lg);
-  color: var(--color-white);
-  position: relative;
-  overflow: hidden;
-}
-
-.logo-icon::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: rotate(45deg);
-  transition: all var(--transition-slow);
-}
-
-.logo:hover .logo-icon::before {
-  animation: logoShimmer 1s ease-in-out;
-}
-
-@keyframes logoShimmer {
-  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+.logo-crest {
+  flex-shrink: 0;
 }
 
 .logo-text {
@@ -458,7 +428,7 @@
 }
 
 @media (max-width: 768px) {
-  .logo-icon {
+  .logo-crest {
     width: 40px;
     height: 40px;
   }
@@ -522,10 +492,6 @@
   .mobile-menu-btn,
   .nav-mobile {
     transition: none;
-  }
-
-  .logo:hover .logo-icon::before {
-    animation: none;
   }
 
   .nav-mobile-backdrop {

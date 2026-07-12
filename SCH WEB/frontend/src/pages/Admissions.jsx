@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SVGIcon from '../components/icons/SVGIcon';
 import PageHeader from '../components/PageHeader';
 import FileUploadField from '../components/FileUploadField';
+import SEO from '../components/SEO';
 import { API_BASE_URL } from '../config/api';
 import './Admissions.css';
 
@@ -112,6 +113,10 @@ const Admissions = () => {
 
   return (
     <div className="admissions">
+      <SEO
+        title="Admissions"
+        description="Start your child's application to GMA School — requirements, process, and online application form."
+      />
       <PageHeader
         title="Admissions"
         description="Join the GMA School family and give your child the best educational foundation."

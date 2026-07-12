@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SVGIcon from '../components/icons/SVGIcon';
 import PageHeader from '../components/PageHeader';
 import FileUploadField from '../components/FileUploadField';
+import SEO from '../components/SEO';
 import { API_BASE_URL } from '../config/api';
 import './Careers.css';
 
@@ -97,6 +98,10 @@ const Careers = () => {
 
   return (
     <div className="careers">
+      <SEO
+        title="Careers"
+        description="Join the GMA School team — explore open teaching and staff positions and apply online."
+      />
       <PageHeader
         title="Join Our Team"
         description="Be part of our mission to provide excellent education and shape young minds."

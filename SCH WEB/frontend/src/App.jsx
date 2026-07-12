@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import './styles/global.css';
 import './styles/portal.css';
 
@@ -42,60 +43,62 @@ const PublicLayout = ({ children }) => (
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Public Routes with Header/Footer */}
-            <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
-            <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
-            <Route path="/admissions" element={<PublicLayout><Admissions /></PublicLayout>} />
-            <Route path="/academics" element={<PublicLayout><Academics /></PublicLayout>} />
-            <Route path="/careers" element={<PublicLayout><Careers /></PublicLayout>} />
-            <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
-            <Route path="/privacy" element={<PublicLayout><Privacy /></PublicLayout>} />
-            <Route path="/terms" element={<PublicLayout><Terms /></PublicLayout>} />
-            <Route path="/sitemap" element={<PublicLayout><Sitemap /></PublicLayout>} />
+    <HelmetProvider>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <Routes>
+              {/* Public Routes with Header/Footer */}
+              <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
+              <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
+              <Route path="/admissions" element={<PublicLayout><Admissions /></PublicLayout>} />
+              <Route path="/academics" element={<PublicLayout><Academics /></PublicLayout>} />
+              <Route path="/careers" element={<PublicLayout><Careers /></PublicLayout>} />
+              <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
+              <Route path="/privacy" element={<PublicLayout><Privacy /></PublicLayout>} />
+              <Route path="/terms" element={<PublicLayout><Terms /></PublicLayout>} />
+              <Route path="/sitemap" element={<PublicLayout><Sitemap /></PublicLayout>} />
 
-            {/* Authentication Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+              {/* Authentication Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* Protected Portal Routes */}
-            <Route path="/portal" element={
-              <ProtectedRoute allowedRoles={['student', 'parent', 'staff', 'admin']}>
-                <PortalLayout />
-              </ProtectedRoute>
-            }>
-              <Route index element={<Dashboard />} />
-              <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
-              <Route path="report-cards" element={<div>Report Cards - Coming Soon</div>} />
-              <Route path="bills" element={<div>Bills & Payments - Coming Soon</div>} />
-              <Route path="notices" element={<div>Notices - Coming Soon</div>} />
-              <Route path="resources" element={<div>Learning Resources - Coming Soon</div>} />
-            </Route>
+              {/* Protected Portal Routes */}
+              <Route path="/portal" element={
+                <ProtectedRoute allowedRoles={['student', 'parent', 'staff', 'admin']}>
+                  <PortalLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<Dashboard />} />
+                <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
+                <Route path="report-cards" element={<div>Report Cards - Coming Soon</div>} />
+                <Route path="bills" element={<div>Bills & Payments - Coming Soon</div>} />
+                <Route path="notices" element={<div>Notices - Coming Soon</div>} />
+                <Route path="resources" element={<div>Learning Resources - Coming Soon</div>} />
+              </Route>
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={['admin', 'staff']}>
-                <div>Admin Panel - Coming Soon</div>
-              </ProtectedRoute>
-            } />
+              {/* Admin Routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute allowedRoles={['admin', 'staff']}>
+                  <div>Admin Panel - Coming Soon</div>
+                </ProtectedRoute>
+              } />
 
-            {/* 404 Page */}
-            <Route path="*" element={
-              <PublicLayout>
-                <div className="not-found">
-                  <h1>Page Not Found</h1>
-                  <p>The page you're looking for doesn't exist.</p>
-                </div>
-              </PublicLayout>
-            } />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+              {/* 404 Page */}
+              <Route path="*" element={
+                <PublicLayout>
+                  <div className="not-found">
+                    <h1>Page Not Found</h1>
+                    <p>The page you're looking for doesn't exist.</p>
+                  </div>
+                </PublicLayout>
+              } />
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
+    </HelmetProvider>
   );
 }
 

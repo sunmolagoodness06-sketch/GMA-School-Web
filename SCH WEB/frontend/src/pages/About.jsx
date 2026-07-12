@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import SVGIcon from '../components/icons/SVGIcon';
 import PageHeader from '../components/PageHeader';
+import SEO from '../components/SEO';
 import './About.css';
 
 const About = () => {
@@ -43,6 +44,10 @@ const About = () => {
 
   return (
     <div className="about">
+      <SEO
+        title="About Us"
+        description="Learn about Goodness and Mercy Academy's story, mission, vision, and values."
+      />
       <PageHeader
         title="About Goodness and Mercy Academy"
         description="Excellence in Education, Character in Life — nurturing young minds from nursery through college since 2014."

@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SVGIcon from '../components/icons/SVGIcon';
 import AuthBranding from '../components/AuthBranding';
+import SEO from '../components/SEO';
 
 const REMEMBERED_EMAIL_KEY = 'gma_remembered_email';
 
@@ -62,6 +63,7 @@ const Login = () => {
 
   return (
     <div className="login-page">
+      <SEO title="Sign In" description="Sign in to the GMA School student and parent portal." />
       <AuthBranding
         title="Welcome back"
         description="Sign in to access your grades, bills, notices, and learning resources — all in one place."

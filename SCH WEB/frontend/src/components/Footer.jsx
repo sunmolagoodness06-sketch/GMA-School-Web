@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SVGIcon from './icons/SVGIcon';
+import SchoolCrest from './SchoolCrest';
 import './Footer.css';
 
 const Footer = () => {
@@ -72,9 +73,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="footer-section footer-brand">
             <div className="footer-logo">
-              <div className="logo-icon">
-                <SVGIcon name="graduation" size={32} />
-              </div>
+              <SchoolCrest size={56} className="logo-crest" />
               <div className="logo-text">
                 <span className="logo-main">GMA</span>
                 <span className="logo-sub">School</span>

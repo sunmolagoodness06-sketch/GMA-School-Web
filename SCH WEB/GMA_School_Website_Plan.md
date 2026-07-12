@@ -204,20 +204,20 @@ gmaschool.edu.ng/
 ### Phase 1 — Public Website & Brand Foundation
 **Duration: Weeks 1–4**
 
-- [ ] Set up React project with Create React App or Vite
-- [ ] Set up Express.js API server with basic routing
-- [ ] Create CSS variables system (navy, gold, white, spacing, typography)
-- [ ] Build reusable React components (Button, Card, Hero, etc.)
-- [ ] Home page — hero, Why GMA, divisions, testimonials
-- [ ] About page
-- [ ] Admissions page + online application form (React form → Express API)
-- [ ] Academics page (all divisions)
-- [ ] Careers page
-- [ ] Contact page with embedded map
-- [ ] Responsive design with CSS Grid/Flexbox
-- [ ] CSS animations and scroll reveals (Intersection Observer)
-- [ ] SEO setup (React Helmet for meta tags)
-- [ ] Deploy frontend to Netlify/Vercel, backend to Railway/Render
+- [x] Set up React project with Create React App or Vite
+- [x] Set up Express.js API server with basic routing
+- [x] Create CSS variables system (navy, gold, white, spacing, typography)
+- [x] Build reusable React components (Header, Footer, PageHeader, AuthBranding, FileUploadField, SVGIcon, etc.)
+- [x] Home page — hero, Why GMA, divisions, testimonials (testimonials now an auto-scrolling marquee)
+- [x] About page (story, mission/vision, values, leadership + accreditations sections — placeholders pending real photos/names)
+- [x] Admissions page + online application form (React form → Express API) — rebuilt to match backend schema exactly, file uploads for all required documents, verified producing real application numbers end-to-end
+- [x] Academics page (all divisions)
+- [x] Careers page (cover letter is now a real file upload, verified submitting to backend)
+- [ ] Contact page with embedded map — page is done; the map is still an honest "Interactive map coming soon" placeholder, not a real Google Maps embed
+- [x] Responsive design with CSS Grid/Flexbox — verified across every page at mobile/tablet/desktop widths
+- [x] CSS animations and scroll reveals (Intersection Observer)
+- [ ] SEO setup — added static title/description/OG/Twitter meta tags + robots.txt to index.html, but not per-page dynamic meta via React Helmet; also still missing canonical URL, og:image, and a real sitemap.xml (all blocked on having a production domain)
+- [ ] Deploy frontend to Netlify/Vercel, backend to Railway/Render — not started
 
 **Deliverable:** Live, brandable public website accepting applications
 
@@ -226,20 +226,20 @@ gmaschool.edu.ng/
 ### Phase 2 — Authentication & Student Portal
 **Duration: Weeks 5–9**
 
-- [ ] MongoDB Atlas setup or local MongoDB installation
-- [ ] Mongoose ODM setup with schema definitions
-- [ ] User authentication system (JWT tokens, bcrypt password hashing)
-- [ ] Express.js middleware for auth protection and role-based access
-- [ ] MongoDB collections design (users, students, reportCards, etc.)
-- [ ] Student portal React components — dashboard, profile
-- [ ] Report card module — admin upload API, student view/download
-- [ ] Bills module — fee schedule display, payment status
-- [ ] Paystack integration — generate payment links via API
-- [ ] School notices module (CRUD operations)
-- [ ] Learning resources module (file upload with GridFS)
-- [ ] Admin console React app — student management, staff management
-- [ ] Admin console — application review module
-- [ ] Billing management panel for Bursar role
+- [x] MongoDB Atlas setup or local MongoDB installation
+- [x] Mongoose ODM setup with schema definitions (User, Student, Application, CareerApplication, ReportCard, etc.)
+- [x] User authentication system (JWT tokens, bcrypt password hashing) — Login/Register/Forgot Password all built and verified working end-to-end against the live backend
+- [x] Express.js middleware for auth protection and role-based access (`authenticateToken`, `authorizeRoles`, `ProtectedRoute`)
+- [x] MongoDB collections design (users, students, reportCards, etc.)
+- [ ] Student portal React components — dashboard, profile — Dashboard is built and verified matching the backend response shape; Profile is still a "Coming Soon" placeholder
+- [ ] Report card module — admin upload API, student view/download — not built (route is a "Coming Soon" placeholder)
+- [ ] Bills module — fee schedule display, payment status — not built (route is a "Coming Soon" placeholder)
+- [ ] Paystack integration — generate payment links via API — not started (env vars are still placeholders)
+- [ ] School notices module (CRUD operations) — not built on the frontend
+- [ ] Learning resources module (file upload with GridFS) — not built; note the file-upload work done this session used Cloudinary, not GridFS
+- [ ] Admin console React app — student management, staff management — not started (`/admin` is a "Coming Soon" placeholder)
+- [ ] Admin console — application review module — not started
+- [ ] Billing management panel for Bursar role — not started
 
 **Deliverable:** Fully functional student portal + core admin console
 
@@ -435,33 +435,33 @@ gmaschool.edu.ng/
 
 Before development starts, gather the following:
 
-- [ ] School name, tagline, mission statement
-- [ ] Logo (SVG or high-res PNG)
-- [ ] Division structure and class list
-- [ ] Staff photos and bios (Principal, key teachers)
-- [ ] Student success stories / testimonials (with parent permission)
-- [ ] Campus photos and video
+- [x] School name, tagline, mission statement — Goodness and Mercy Academy (GMA), "Excellence in Education, Character in Life," founded 2014
+- [ ] Logo (SVG or high-res PNG) — currently a placeholder graduation-cap mark I drew; needs the real school logo
+- [x] Division structure and class list — Nursery, Primary, Secondary, College/Sixth Form, each with age ranges
+- [ ] Staff photos and bios (Principal, key teachers) — About page's Leadership Team section has clearly-marked placeholders waiting on this
+- [ ] Student success stories / testimonials (with parent permission) — existing testimonials on the homepage are unconfirmed placeholder content, not verified as real
+- [ ] Campus photos and video — Contact page's map is still a placeholder too
 - [ ] Fee schedule per division (for billing module)
 - [ ] Curriculum type (NERDC / Cambridge / IB / Hybrid)
-- [ ] Social media handles
-- [ ] Contact details (address, phone, email)
+- [ ] Social media handles — footer icons currently link to "#"
+- [x] Contact details (address, phone, email) — used consistently across Header/Footer/Contact
 - [ ] Accreditation certificates or affiliations to display
 
 ---
 
 ## Go-Live Checklist
 
-- [ ] All pages reviewed on mobile and desktop
-- [ ] Application form tested end-to-end (submission → admin sees it)
-- [ ] Student portal login tested with real student account
-- [ ] Paystack test mode payments confirmed working
-- [ ] CBT exam completed full run (create → take → auto-score → results)
-- [ ] Report card upload and student download tested
-- [ ] All admin roles tested (bursar, teacher, super admin)
-- [ ] SSL certificate active (HTTPS)
-- [ ] Google Analytics or Plausible installed
-- [ ] 404 and error pages styled
-- [ ] Backup and restore process documented
+- [x] All pages reviewed on mobile and desktop — verified at mobile/tablet/desktop breakpoints across every page
+- [ ] Application form tested end-to-end (submission → admin sees it) — submission itself is verified working (produces a real application number in MongoDB), but there's no admin console yet to "see it"
+- [ ] Student portal login tested with real student account — auth flow is verified working against the live backend, but not yet with a real enrolled student's seeded data
+- [ ] Paystack test mode payments confirmed working — not started (env vars still placeholders)
+- [ ] CBT exam completed full run (create → take → auto-score → results) — not started, no CBT code exists yet
+- [ ] Report card upload and student download tested — not started
+- [ ] All admin roles tested (bursar, teacher, super admin) — not started, admin console doesn't exist yet
+- [ ] SSL certificate active (HTTPS) — not applicable yet, site isn't deployed
+- [ ] Google Analytics or Plausible installed — not started
+- [ ] 404 and error pages styled — the 404 route exists but has no dedicated CSS, just falls back to default global text styling
+- [ ] Backup and restore process documented — not started
 
 ---
 

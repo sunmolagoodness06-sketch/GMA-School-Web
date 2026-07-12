@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SVGIcon from './icons/SVGIcon';
+import SchoolCrest from './SchoolCrest';
 import HeroIllustration from './HeroIllustration';
 
 const AuthBranding = ({ title, description }) => {
   return (
     <div className="login-branding">
       <Link to="/" className="login-branding-logo">
-        <SVGIcon name="graduation-cap" size={32} />
+        <SchoolCrest size={36} />
         <span>GMA School</span>
       </Link>
 

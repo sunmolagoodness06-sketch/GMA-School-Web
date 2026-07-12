@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SVGIcon from '../components/icons/SVGIcon';
 import PageHeader from '../components/PageHeader';
+import SEO from '../components/SEO';
 import { API_BASE_URL } from '../config/api';
 import './Contact.css';
 
@@ -86,6 +87,10 @@ const Contact = () => {
 
   return (
     <div className="contact">
+      <SEO
+        title="Contact Us"
+        description="Get in touch with GMA School for admissions, inquiries, or to schedule a campus tour."
+      />
       <PageHeader
         title="Contact Us"
         description="Get in touch with us for admissions, inquiries, or to schedule a campus tour."
@@ -114,9 +119,14 @@ const Contact = () => {
 
               <div className="contact-map">
                 <h3>Campus Map</h3>
-                <div className="contact-map-placeholder">
-                  <SVGIcon name="mapPin" size={28} />
-                  <p>Interactive map coming soon</p>
+                <div className="contact-map-embed">
+                  <iframe
+                    title="GMA School Campus Map"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent('Plot 16, Goshen Str, Off Odo-Ona kekere, Ibadan, Nigeria')}&output=embed`}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  ></iframe>
                 </div>
               </div>
             </div>

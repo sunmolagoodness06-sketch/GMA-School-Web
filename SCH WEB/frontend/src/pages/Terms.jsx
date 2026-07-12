@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 const Terms = () => {
   return (
     <div className="terms" style={{ paddingTop: '100px', minHeight: '100vh' }}>
+      <SEO title="Terms of Service" description="The terms governing your use of the Goodness and Mercy Academy website." />
       <div className="container">
         <div className="section">
           <h1>Terms of Service</h1>

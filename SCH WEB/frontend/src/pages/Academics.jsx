@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import SVGIcon from '../components/icons/SVGIcon';
 import PageHeader from '../components/PageHeader';
+import SEO from '../components/SEO';
 import './Academics.css';
 
 const Academics = () => {
@@ -80,6 +81,10 @@ const Academics = () => {
 
   return (
     <div className="academics">
+      <SEO
+        title="Academic Programs"
+        description="Explore GMA School's academic divisions from nursery through college preparation."
+      />
       <PageHeader
         title="Academic Programs"
         description="A comprehensive education journey from nursery through college preparation, designed to unlock every student's potential at every stage."

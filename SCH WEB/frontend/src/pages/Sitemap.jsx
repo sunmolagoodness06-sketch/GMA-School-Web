@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SVGIcon from '../components/icons/SVGIcon';
+import SEO from '../components/SEO';
 
 const Sitemap = () => {
   const sections = [
@@ -42,6 +43,7 @@ const Sitemap = () => {
 
   return (
     <div className="sitemap" style={{ paddingTop: '100px', minHeight: '100vh' }}>
+      <SEO title="Sitemap" description="A full overview of every page on the Goodness and Mercy Academy website." />
       <div className="container">
         <div className="section">
           <h1>Sitemap</h1>
