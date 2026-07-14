@@ -2,12 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SVGIcon from '../components/icons/SVGIcon';
+import AuthBranding from '../components/AuthBranding';
+import SEO from '../components/SEO';
+
+const REMEMBERED_EMAIL_KEY = 'gma_remembered_email';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    email: localStorage.getItem(REMEMBERED_EMAIL_KEY) || '',
     password: ''
   });
+  const [rememberMe, setRememberMe] = useState(!!localStorage.getItem(REMEMBERED_EMAIL_KEY));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -15,7 +20,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Redirect to intended page after login
   const from = location.state?.from?.pathname || '/portal';
 
@@ -41,25 +46,38 @@ const Login = () => {
     setError('');
 
     const result = await login(formData.email, formData.password);
-    
+
     if (result.success) {
+      if (rememberMe) {
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email);
+      } else {
+        localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      }
       navigate(from, { replace: true });
     } else {
       setError(result.message);
     }
-    
+
     setIsLoading(false);
   };
 
   return (
     <div className="login-page">
-      <div className="container">
+      <SEO title="Sign In" description="Sign in to the GMA School student and parent portal." />
+      <AuthBranding
+        title="Welcome back"
+        description="Sign in to access your grades, bills, notices, and learning resources — all in one place."
+      />
+
+      <div className="login-form-panel">
         <div className="login-container">
+          <Link to="/" className="login-form-logo">
+            <SVGIcon name="graduation-cap" size={28} />
+            <span>GMA School</span>
+          </Link>
+
           <div className="login-header">
-            <div className="logo">
-              <SVGIcon name="graduation-cap" size="48" />
-              <h1>GMA School Portal</h1>
-            </div>
+            <h1>Sign In</h1>
             <p>Sign in to access your account</p>
           </div>
 
@@ -112,7 +130,11 @@ const Login = () => {
 
             <div className="form-options">
               <label className="checkbox-label">
-                <input type="checkbox" />
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 <span className="checkbox-custom"></span>
                 Remember me
               </label>
@@ -121,8 +143,8 @@ const Login = () => {
               </Link>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary btn-full"
               disabled={isLoading}
             >
@@ -142,7 +164,7 @@ const Login = () => {
 
           <div className="login-footer">
             <p>Don't have an account? <Link to="/register">Create Account</Link></p>
-            <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+            <p className="login-footer-secondary">
               Need help? <Link to="/contact">Contact Administration</Link>
             </p>
             <Link to="/" className="back-home">

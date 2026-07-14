@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import SVGIcon from '../components/icons/SVGIcon';
+import PageHeader from '../components/PageHeader';
+import SEO from '../components/SEO';
+import { API_BASE_URL } from '../config/api';
+import './Contact.css';
+
+const initialFormData = {
+  name: '',
+  email: '',
+  phone: '',
+  subject: '',
+  message: ''
+};
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: ''
-  });
-
+  const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
   const [submitMessage, setSubmitMessage] = useState('');
 
   const handleChange = (e) => {
@@ -23,9 +29,10 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+    setSubmitStatus(null);
+
     try {
-      const response = await fetch('http://localhost:5000/api/public/contact', {
+      const response = await fetch(`${API_BASE_URL}/public/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,112 +41,114 @@ const Contact = () => {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
-        setSubmitMessage('Thank you for your message! We will get back to you soon.');
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          subject: '',
-          message: ''
-        });
+        setSubmitStatus('success');
+        setSubmitMessage(result.message);
+        setFormData(initialFormData);
       } else {
-        setSubmitMessage('There was an error sending your message. Please try again.');
+        setSubmitStatus('error');
+        setSubmitMessage(
+          result.errors?.map((err) => err.msg).join(', ') ||
+          result.message ||
+          'There was an error sending your message. Please try again.'
+        );
       }
     } catch (error) {
+      setSubmitStatus('error');
       setSubmitMessage('There was an error sending your message. Please try again.');
     }
-    
+
     setIsSubmitting(false);
   };
 
+  const contactDetails = [
+    {
+      icon: 'mapPin',
+      title: 'Address',
+      lines: ['Plot 16,', 'Goshen str, Off Odo-ona kekere, Ibadan', 'Nigeria']
+    },
+    {
+      icon: 'phone',
+      title: 'Phone',
+      lines: ['+234 (0) 703 297 7267', '+234 (0) 813 690 3219']
+    },
+    {
+      icon: 'mail',
+      title: 'Email',
+      lines: ['goodnessandmercyschool@gmail.com', 'admissions@gmaschool.edu.ng']
+    },
+    {
+      icon: 'clock',
+      title: 'Office Hours',
+      lines: ['Monday - Friday: 8:00 AM - 5:00 PM', 'Saturday: 9:00 AM - 2:00 PM', 'Sunday: Closed']
+    }
+  ];
+
   return (
-    <div className="contact" style={{ paddingTop: '100px', minHeight: '100vh' }}>
-      <div className="container">
-        <div className="section">
-          <h1>Contact Us</h1>
-          <p>Get in touch with us for admissions, inquiries, or to schedule a campus tour.</p>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', marginTop: '2rem' }}>
-            <div>
+    <div className="contact">
+      <SEO
+        title="Contact Us"
+        description="Get in touch with GMA School for admissions, inquiries, or to schedule a campus tour."
+      />
+      <PageHeader
+        title="Contact Us"
+        description="Get in touch with us for admissions, inquiries, or to schedule a campus tour."
+      />
+
+      <section className="section">
+        <div className="container">
+          <div className="contact-grid">
+            <div className="contact-info">
               <h2>Get in Touch</h2>
-              
-              <div className="card" style={{ marginBottom: '1.5rem' }}>
-                <div className="card-body">
-                  <h4>
-                    <SVGIcon name="mapPin" size={20} />
-                    Address
-                  </h4>
-                  <p>Plot 16,<br />Goshen str, Off Odo-ona kekere, Ibadan<br />Nigeria</p>
-                </div>
+              <div className="contact-details">
+                {contactDetails.map((detail) => (
+                  <div key={detail.title} className="contact-detail-card">
+                    <div className="contact-detail-icon">
+                      <SVGIcon name={detail.icon} size={22} />
+                    </div>
+                    <div>
+                      <h4>{detail.title}</h4>
+                      {detail.lines.map((line, i) => (
+                        <p key={i}>{line}</p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-              
-              <div className="card" style={{ marginBottom: '1.5rem' }}>
-                <div className="card-body">
-                  <h4>
-                    <SVGIcon name="phone" size={20} />
-                    Phone
-                  </h4>
-                  <p>+234 (0) 703 297 7267 <br />+234 (0) 813 690 3219</p>
-                </div>
-              </div>
-              
-              <div className="card" style={{ marginBottom: '1.5rem' }}>
-                <div className="card-body">
-                  <h4>
-                    <SVGIcon name="mail" size={20} />
-                    Email
-                  </h4>
-                  <p>goodnessandmercyschool@gmail.com<br />admissions@gmaschool.edu.ng</p>
-                </div>
-              </div>
-              
-              <div className="card">
-                <div className="card-body">
-                  <h4>
-                    <SVGIcon name="clock" size={20} />
-                    Office Hours
-                  </h4>
-                  <p>Monday - Friday: 8:00 AM - 5:00 PM<br />Saturday: 9:00 AM - 2:00 PM<br />Sunday: Closed</p>
-                </div>
-              </div>
-              
-              <div style={{ marginTop: '2rem' }}>
+
+              <div className="contact-map">
                 <h3>Campus Map</h3>
-                <div style={{ 
-                  height: '300px', 
-                  backgroundColor: '#f0f0f0', 
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#666',
-                  marginTop: '1rem'
-                }}>
-                  <p>Interactive Google Maps will be embedded here</p>
+                <div className="contact-map-embed">
+                  <iframe
+                    title="GMA School Campus Map"
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent('Plot 16, Goshen Str, Off Odo-Ona kekere, Ibadan, Nigeria')}&output=embed`}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  ></iframe>
                 </div>
               </div>
             </div>
-            
-            <div className="card">
+
+            <div className="card contact-form-card">
               <div className="card-header">
                 <h3>Send us a Message</h3>
               </div>
               <div className="card-body">
-                {submitMessage && (
-                  <div style={{ 
-                    padding: '1rem', 
-                    marginBottom: '1rem', 
-                    backgroundColor: '#f0f9ff', 
-                    border: '1px solid #0ea5e9',
-                    borderRadius: '8px',
-                    color: '#0c4a6e'
-                  }}>
-                    {submitMessage}
+                {submitStatus === 'success' && (
+                  <div className="success-message">
+                    <SVGIcon name="checkCircle" size={20} />
+                    <span>{submitMessage}</span>
                   </div>
                 )}
-                
+                {submitStatus === 'error' && (
+                  <div className="error-message">
+                    <SVGIcon name="alert-circle" size={20} />
+                    <span>{submitMessage}</span>
+                  </div>
+                )}
+
                 <form onSubmit={handleSubmit}>
                   <div className="form-group">
                     <label className="form-label">Full Name *</label>
@@ -152,7 +161,7 @@ const Contact = () => {
                       required
                     />
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Email *</label>
                     <input
@@ -164,7 +173,7 @@ const Contact = () => {
                       required
                     />
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Phone Number *</label>
                     <input
@@ -176,7 +185,7 @@ const Contact = () => {
                       required
                     />
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Subject *</label>
                     <select
@@ -195,7 +204,7 @@ const Contact = () => {
                       <option value="other">Other</option>
                     </select>
                   </div>
-                  
+
                   <div className="form-group">
                     <label className="form-label">Message *</label>
                     <textarea
@@ -207,10 +216,10 @@ const Contact = () => {
                       required
                     ></textarea>
                   </div>
-                  
-                  <button 
-                    type="submit" 
-                    className="btn btn-primary"
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-full"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Sending...' : 'Send Message'}
@@ -220,7 +229,7 @@ const Contact = () => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

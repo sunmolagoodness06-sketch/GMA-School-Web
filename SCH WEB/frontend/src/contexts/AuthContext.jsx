@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -14,9 +15,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('gma_token'));
   const [isLoading, setIsLoading] = useState(true);
-
-  // API base URL
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
   // Check if user is authenticated on app start
   useEffect(() => {
@@ -87,6 +85,40 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async (payload) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { success: false, message: 'An error occurred during registration. Please try again.' };
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      return { success: false, message: 'Network error. Please try again.' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('gma_token');
     setToken(null);
@@ -131,6 +163,8 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     isAuthenticated: !!user,
     login,
+    register,
+    forgotPassword,
     logout,
     updateUser,
     apiCall,

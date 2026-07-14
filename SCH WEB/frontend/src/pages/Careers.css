@@ -1,0 +1,99 @@
+.careers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-12);
+  align-items: start;
+}
+
+.careers-info h2 {
+  margin-bottom: var(--space-6);
+}
+
+.careers-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.careers-benefit-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.careers-benefit-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--color-navy), var(--color-navy-light));
+  color: var(--color-white);
+  border-radius: var(--radius-lg);
+}
+
+.careers-benefit-card h4 {
+  margin-bottom: var(--space-1);
+  color: var(--color-navy);
+}
+
+.careers-benefit-card p {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  margin-bottom: 0;
+}
+
+.careers-openings-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-navy);
+  margin-bottom: var(--space-4);
+}
+
+.careers-openings-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.careers-openings-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-light);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+}
+
+.careers-openings-list svg {
+  flex-shrink: 0;
+  color: var(--color-gold-dark);
+}
+
+.careers-form-card {
+  position: sticky;
+  top: var(--space-24);
+}
+
+@media (max-width: 1024px) {
+  .careers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .careers-form-card {
+    position: static;
+  }
+}
