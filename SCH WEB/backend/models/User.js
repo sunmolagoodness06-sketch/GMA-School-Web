@@ -4,9 +4,15 @@ import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: true,
     unique: true,
+    sparse: true,
     lowercase: true,
+    trim: true
+  },
+  phone: {
+    type: String,
+    unique: true,
+    sparse: true,
     trim: true
   },
   passwordHash: {
@@ -40,6 +46,14 @@ const userSchema = new mongoose.Schema({
   lockUntil: {
     type: Date,
     default: null
+  },
+  passwordResetToken: {
+    type: String,
+    default: null
+  },
+  passwordResetExpires: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
@@ -53,6 +67,16 @@ userSchema.virtual('isLocked').get(function() {
 // Index for performance
 userSchema.index({ role: 1 });
 userSchema.index({ division: 1 });
+
+// Every account needs at least one way to log in — except students, who log
+// in with their registration number (resolved via the linked Student record,
+// not stored on the User itself)
+userSchema.pre('validate', function(next) {
+  if (this.role !== 'student' && !this.email && !this.phone) {
+    return next(new Error('An account needs at least an email or a phone number'));
+  }
+  next();
+});
 
 // Pre-save middleware to hash password
 userSchema.pre('save', async function(next) {
@@ -108,6 +132,32 @@ userSchema.statics.createUser = async function(userData) {
 // Method to find by email
 userSchema.statics.findByEmail = function(email) {
   return this.findOne({ email: email.toLowerCase() });
+};
+
+// Method to find by phone
+userSchema.statics.findByPhone = function(phone) {
+  return this.findOne({ phone });
+};
+
+// Method to find by email, phone, or student registration number — used at
+// login, where the user may type in whichever identifier they were given.
+// Registration numbers (e.g. "GMA/PRI/2024/0001") aren't stored on the User
+// itself, so a "/" in the identifier routes the lookup through the Student
+// collection instead.
+userSchema.statics.findByIdentifier = async function(identifier) {
+  const trimmed = identifier.trim();
+
+  if (trimmed.includes('@')) {
+    return this.findOne({ email: trimmed.toLowerCase() });
+  }
+
+  if (trimmed.includes('/')) {
+    const Student = (await import('./Student.js')).default;
+    const student = await Student.findOne({ regNumber: trimmed.toUpperCase() }).select('userId');
+    return student ? this.findById(student.userId) : null;
+  }
+
+  return this.findOne({ phone: trimmed });
 };
 
 export default mongoose.model('User', userSchema);

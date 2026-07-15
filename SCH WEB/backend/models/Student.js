@@ -6,6 +6,11 @@ const studentSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  parentUserId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   regNumber: {
     type: String,
     required: true,
@@ -53,7 +58,6 @@ const studentSchema = new mongoose.Schema({
     },
     email: {
       type: String,
-      required: true,
       lowercase: true,
       trim: true
     },

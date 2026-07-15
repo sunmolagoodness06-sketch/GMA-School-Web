@@ -28,8 +28,22 @@ router.get('/dashboard', authenticateToken, authorizeRoles('student', 'parent', 
       }
       studentId = student._id;
     } else if (req.userRole === 'parent') {
-      // Parent can view their child's dashboard
-      const student = await Student.findOne({ 'parentInfo.email': req.user.email });
+      // Parent can view any of their children's dashboards. Matches on the
+      // linked parentUserId first (how accounts are provisioned now),
+      // falling back to contact-info matching for older records. Passing
+      // ?studentId= picks a specific child (still scoped to this parent's
+      // own children); omitting it defaults to the first one found.
+      const baseQuery = {
+        isActive: true,
+        $or: [
+          { parentUserId: req.userId },
+          ...(req.user.email ? [{ 'parentInfo.email': req.user.email }] : []),
+          ...(req.user.phone ? [{ 'parentInfo.phone': req.user.phone }] : [])
+        ]
+      };
+      const student = req.query.studentId
+        ? await Student.findOne({ ...baseQuery, _id: req.query.studentId })
+        : await Student.findOne(baseQuery);
       if (!student) {
         return res.status(404).json({
           success: false,

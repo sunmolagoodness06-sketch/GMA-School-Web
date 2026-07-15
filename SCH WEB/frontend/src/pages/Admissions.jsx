@@ -301,14 +301,13 @@ const Admissions = () => {
 
                   <div className="admissions-form-row">
                     <div className="form-group">
-                      <label className="form-label">Email *</label>
+                      <label className="form-label">Email (optional)</label>
                       <input
                         type="email"
                         name="fatherEmail"
                         value={formData.fatherEmail}
                         onChange={handleChange}
                         className="form-input"
-                        required
                       />
                     </div>
                     <div className="form-group">

@@ -1,35 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSelectedChild } from '../../contexts/SelectedChildContext';
 import { Link } from 'react-router-dom';
 import SVGIcon from '../../components/icons/SVGIcon';
 
 const Dashboard = () => {
   const { user, apiCall } = useAuth();
+  const { selectedChildId } = useSelectedChild();
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    // Guards against a slower response for a previously-selected child
+    // arriving after a faster one for the newly-selected child, which would
+    // otherwise overwrite the correct data with stale data.
+    let cancelled = false;
 
-  const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      const { data } = await apiCall('/student/dashboard');
-      
-      if (data.success) {
-        setDashboardData(data.data);
-      } else {
-        setError(data.message || 'Failed to load dashboard');
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const query = user?.role === 'parent' && selectedChildId ? `?studentId=${selectedChildId}` : '';
+        const { data } = await apiCall(`/student/dashboard${query}`);
+        if (cancelled) return;
+
+        if (data.success) {
+          setDashboardData(data.data);
+        } else {
+          setError(data.message || 'Failed to load dashboard');
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setError('Failed to connect to server');
+        console.error('Dashboard fetch error:', error);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
-    } catch (error) {
-      setError('Failed to connect to server');
-      console.error('Dashboard fetch error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    fetchDashboardData();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedChildId, retryCount]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-NG', {
@@ -53,7 +66,7 @@ const Dashboard = () => {
         <SVGIcon name="alert-circle" size="48" />
         <h3>Unable to load dashboard</h3>
         <p>{error}</p>
-        <button onClick={fetchDashboardData} className="btn btn-primary">
+        <button onClick={() => setRetryCount((c) => c + 1)} className="btn btn-primary">
           Try Again
         </button>
       </div>

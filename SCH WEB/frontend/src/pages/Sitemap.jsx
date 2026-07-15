@@ -29,7 +29,7 @@ const Sitemap = () => {
       title: 'Account',
       links: [
         { path: '/login', label: 'Portal Login', icon: 'log-in' },
-        { path: '/register', label: 'Register', icon: 'user' }
+        { path: '/admissions', label: 'Apply for Admission', icon: 'arrowRight' }
       ]
     },
     {

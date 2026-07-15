@@ -59,7 +59,6 @@ const applicationSchema = new mongoose.Schema({
       },
       email: {
         type: String,
-        required: true,
         lowercase: true
       },
       address: String
@@ -200,6 +199,11 @@ const applicationSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  linkedStudentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+    default: null
   }
 }, {
   timestamps: true

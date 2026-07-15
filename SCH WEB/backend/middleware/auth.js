@@ -136,8 +136,14 @@ export const authorizeStudentAccess = async (req, res, next) => {
     if (role === 'parent') {
       const Student = (await import('../models/Student.js')).default;
       const student = await Student.findById(studentId);
-      
-      if (!student || student.parentInfo.email !== req.user.email) {
+
+      const isParentOfStudent = student && (
+        student.parentUserId?.equals(userId) ||
+        (req.user.email && student.parentInfo.email === req.user.email) ||
+        (req.user.phone && student.parentInfo.phone === req.user.phone)
+      );
+
+      if (!isParentOfStudent) {
         return res.status(403).json({
           success: false,
           message: 'Access denied - not your child\'s record'
@@ -180,8 +186,8 @@ export const authorizeDivisionAccess = (req, res, next) => {
 const loginAttempts = new Map();
 
 export const rateLimitLogin = (req, res, next) => {
-  const { email } = req.body;
-  const key = `login_${email}`;
+  const { identifier } = req.body;
+  const key = `login_${identifier}`;
   const now = Date.now();
   const windowMs = 15 * 60 * 1000; // 15 minutes
   const maxAttempts = 5;

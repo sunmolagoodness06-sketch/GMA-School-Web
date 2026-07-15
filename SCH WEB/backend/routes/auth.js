@@ -1,20 +1,26 @@
 import express from 'express';
+import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import Student from '../models/Student.js';
-import { 
-  generateToken, 
-  authenticateToken, 
-  authorizeRoles, 
-  rateLimitLogin 
+import {
+  generateToken,
+  authenticateToken,
+  authorizeRoles,
+  rateLimitLogin
 } from '../middleware/auth.js';
+import { sendPasswordResetEmail } from '../utils/email.js';
+import { sendPasswordResetSMS, sendCredentialsSMS } from '../utils/sms.js';
+
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 const router = express.Router();
 
 // Login endpoint
 router.post('/login', rateLimitLogin, [
-  body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+  body('identifier').trim().notEmpty().withMessage('Please provide your email or phone number'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('role').optional().isIn(['parent', 'student', 'staff']).withMessage('Invalid account type')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -25,10 +31,10 @@ router.post('/login', rateLimitLogin, [
       });
     }
 
-    const { email, password } = req.body;
+    const { identifier, password, role } = req.body;
 
-    // Find user by email
-    const user = await User.findByEmail(email);
+    // Find user by email or phone
+    const user = await User.findByIdentifier(identifier);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -53,6 +59,19 @@ router.post('/login', rateLimitLogin, [
       });
     }
 
+    // Confirm the selected account type matches the account (checked after
+    // password verification so a wrong guess here can't be used to probe
+    // whether an identifier exists). "Staff" also covers admin accounts.
+    if (role) {
+      const roleMatches = role === 'staff' ? ['staff', 'admin'].includes(user.role) : user.role === role;
+      if (!roleMatches) {
+        return res.status(401).json({
+          success: false,
+          message: `This account is registered as ${user.role}, not ${role}. Please select the correct account type.`
+        });
+      }
+    }
+
     // Generate JWT token
     const token = generateToken(user._id, user.role);
 
@@ -60,6 +79,7 @@ router.post('/login', rateLimitLogin, [
     let userData = {
       id: user._id,
       email: user.email,
+      phone: user.phone,
       role: user.role,
       division: user.division,
       lastLogin: user.lastLogin
@@ -80,6 +100,19 @@ router.post('/login', rateLimitLogin, [
       }
     }
 
+    // If user is a parent, list the children linked to this account
+    if (user.role === 'parent') {
+      const children = await Student.find({ parentUserId: user._id, isActive: true });
+      userData.children = children.map((child) => ({
+        id: child._id,
+        fullName: child.fullName,
+        regNumber: child.regNumber,
+        class: child.class,
+        division: child.division,
+        session: child.session
+      }));
+    }
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -96,135 +129,10 @@ router.post('/login', rateLimitLogin, [
   }
 });
 
-// Public registration endpoint for existing students/parents
-router.post('/register', [
-  body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('role').isIn(['student', 'parent']).withMessage('Role must be either student or parent'),
-  body('regNumber').optional().isString().withMessage('Registration number must be a string'),
-  body('studentName').optional().isString().withMessage('Student name must be a string')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
-    const { email, password, role, regNumber, studentName } = req.body;
-
-    // Check if user already exists
-    const existingUser = await User.findByEmail(email);
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: 'User with this email already exists'
-      });
-    }
-
-    let student = null;
-    let division = null;
-
-    if (role === 'student') {
-      // Verify student exists with provided reg number
-      if (!regNumber) {
-        return res.status(400).json({
-          success: false,
-          message: 'Registration number is required for student accounts'
-        });
-      }
-
-      student = await Student.findOne({ regNumber: regNumber.trim() });
-      if (!student) {
-        return res.status(404).json({
-          success: false,
-          message: 'No student found with this registration number'
-        });
-      }
-
-      // Check if student already has a user account
-      if (student.userId) {
-        return res.status(409).json({
-          success: false,
-          message: 'A portal account already exists for this student'
-        });
-      }
-
-      // Verify email matches student record (optional but recommended)
-      if (student.parentInfo.email.toLowerCase() !== email.toLowerCase()) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email must match the email on file for this student'
-        });
-      }
-
-      division = student.division;
-
-    } else if (role === 'parent') {
-      // For parent role, verify they have a child in the school
-      if (!studentName) {
-        return res.status(400).json({
-          success: false,
-          message: 'Student name is required for parent accounts'
-        });
-      }
-
-      student = await Student.findOne({ 
-        'parentInfo.email': email.toLowerCase(),
-        fullName: { $regex: new RegExp(studentName.trim(), 'i') }
-      });
-
-      if (!student) {
-        return res.status(404).json({
-          success: false,
-          message: 'No student found with this parent email and student name combination'
-        });
-      }
-
-      division = student.division;
-    }
-
-    // Create user account
-    const userData = {
-      email,
-      passwordHash: password, // Will be hashed by the model
-      role,
-      division
-    };
-
-    const user = await User.createUser(userData);
-
-    // Link student to user if it's a student account
-    if (role === 'student' && student) {
-      student.userId = user._id;
-      await student.save();
-    }
-
-    res.status(201).json({
-      success: true,
-      message: `${role === 'student' ? 'Student' : 'Parent'} account created successfully! You can now log in to the portal.`,
-      user: {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-        division: user.division
-      }
-    });
-
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'An error occurred during registration'
-    });
-  }
-});
-
-// Admin register endpoint (for admin to create users)
+// Admin register endpoint (for admin to create users, e.g. staff/teacher accounts)
 router.post('/admin/register', authenticateToken, authorizeRoles('admin'), [
-  body('email').isEmail().withMessage('Please provide a valid email'),
+  body('email').optional({ checkFalsy: true }).isEmail().withMessage('Please provide a valid email'),
+  body('phone').optional({ checkFalsy: true }).isString().withMessage('Please provide a valid phone number'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('role').isIn(['student', 'parent', 'staff', 'admin']).withMessage('Invalid role'),
   body('division').optional().isIn(['nursery', 'primary', 'secondary', 'college']).withMessage('Invalid division')
@@ -238,20 +146,28 @@ router.post('/admin/register', authenticateToken, authorizeRoles('admin'), [
       });
     }
 
-    const { email, password, role, division } = req.body;
+    const { email, phone, password, role, division } = req.body;
+
+    if (!email && !phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'An email or phone number is required to create an account'
+      });
+    }
 
     // Check if user already exists
-    const existingUser = await User.findByEmail(email);
+    const existingUser = await User.findByIdentifier(email || phone);
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: 'User with this email already exists'
+        message: 'A user with this email or phone number already exists'
       });
     }
 
     // Create user
     const userData = {
-      email,
+      email: email || undefined,
+      phone: phone || undefined,
       passwordHash: password, // Will be hashed by the model
       role,
       division: (role === 'student' || role === 'parent') ? division : undefined
@@ -259,12 +175,17 @@ router.post('/admin/register', authenticateToken, authorizeRoles('admin'), [
 
     const user = await User.createUser(userData);
 
+    if (user.phone) {
+      await sendCredentialsSMS({ phone: user.phone, identifier: email || phone, password, role });
+    }
+
     res.status(201).json({
       success: true,
       message: 'User created successfully',
       user: {
         id: user._id,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         division: user.division
       }
@@ -339,6 +260,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
     let userData = {
       id: user._id,
       email: user.email,
+      phone: user.phone,
       role: user.role,
       division: user.division,
       lastLogin: user.lastLogin,
@@ -360,6 +282,20 @@ router.get('/profile', authenticateToken, async (req, res) => {
           parentInfo: student.parentInfo
         };
       }
+    }
+
+    // If user is a parent, list the children linked to this account
+    if (user.role === 'parent') {
+      const children = await Student.find({ parentUserId: user._id, isActive: true });
+      userData.children = children.map((child) => ({
+        id: child._id,
+        fullName: child.fullName,
+        regNumber: child.regNumber,
+        class: child.class,
+        division: child.division,
+        session: child.session,
+        photoUrl: child.photoUrl
+      }));
     }
 
     res.json({
@@ -412,7 +348,7 @@ router.get('/verify', authenticateToken, (req, res) => {
 
 // Password reset request (simplified version)
 router.post('/forgot-password', [
-  body('email').isEmail().withMessage('Please provide a valid email')
+  body('identifier').trim().notEmpty().withMessage('Please provide your email or phone number')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -423,32 +359,93 @@ router.post('/forgot-password', [
       });
     }
 
-    const { email } = req.body;
+    const { identifier } = req.body;
+    const genericMessage = 'If an account with this email or phone number exists, you will receive password reset instructions.';
 
     // Check if user exists
-    const user = await User.findByEmail(email);
+    const user = await User.findByIdentifier(identifier);
     if (!user) {
-      // Don't reveal if email exists or not for security
-      return res.json({
-        success: true,
-        message: 'If an account with this email exists, you will receive password reset instructions.'
-      });
+      // Don't reveal if the account exists or not for security
+      return res.json({ success: true, message: genericMessage });
     }
 
-    // TODO: Generate reset token and send email
-    // For now, just log it
-    console.log('Password reset requested for:', email);
+    // Generate a random token; only the hash is stored so a leaked DB can't be used to reset passwords
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save();
 
-    res.json({
-      success: true,
-      message: 'If an account with this email exists, you will receive password reset instructions.'
-    });
+    const resetUrl = `${FRONTEND_URL}/reset-password/${resetToken}`;
+
+    if (user.email) {
+      await sendPasswordResetEmail({ email: user.email, resetUrl });
+    } else if (user.phone) {
+      await sendPasswordResetSMS({ phone: user.phone, resetUrl });
+    } else if (user.role === 'student') {
+      // Student accounts have no contact info of their own (they log in
+      // with their registration number) — the reset link has to go to
+      // whichever contact is on file for their parent instead.
+      const student = await Student.findOne({ userId: user._id });
+      if (student?.parentInfo?.email) {
+        await sendPasswordResetEmail({ email: student.parentInfo.email, resetUrl });
+      } else if (student?.parentInfo?.phone) {
+        await sendPasswordResetSMS({ phone: student.parentInfo.phone, resetUrl });
+      }
+    }
+
+    res.json({ success: true, message: genericMessage });
 
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({
       success: false,
       message: 'An error occurred while processing your request'
+    });
+  }
+});
+
+// Complete a password reset using the token emailed to the user
+router.post('/reset-password/:token', [
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'This password reset link is invalid or has expired. Please request a new one.'
+      });
+    }
+
+    user.passwordHash = req.body.password;
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Your password has been reset successfully. You can now sign in with your new password.'
+    });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while resetting your password'
     });
   }
 });

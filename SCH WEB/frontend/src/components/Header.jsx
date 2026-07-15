@@ -120,9 +120,9 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="header-actions">
-            <Link to="/register" className="btn btn-outline btn-sm">
-              <SVGIcon name="user" size={16} />
-              Register
+            <Link to="/admissions" className="btn btn-outline btn-sm">
+              <SVGIcon name="arrowRight" size={16} />
+              Apply Now
             </Link>
             <Link to="/login" className="btn btn-outline btn-sm">
               <SVGIcon name="log-in" size={16} />
@@ -190,10 +190,6 @@ const Header = () => {
               </div>
             ))}
             <div className="nav-mobile-actions">
-              <Link to="/register" className="btn btn-outline">
-                <SVGIcon name="user" size={16} />
-                Register
-              </Link>
               <Link to="/login" className="btn btn-outline">
                 <SVGIcon name="log-in" size={16} />
                 Portal Login

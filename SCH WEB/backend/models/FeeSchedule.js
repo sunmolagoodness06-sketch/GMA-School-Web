@@ -97,8 +97,11 @@ feeScheduleSchema.index(
   { unique: true }
 );
 
-// Calculate total amount before saving
-feeScheduleSchema.pre('save', function(next) {
+// Calculate total amount before validating — must run pre('validate'), not
+// pre('save'): validation (which requires totalAmount) happens before
+// pre('save') hooks fire, so computing it there is always too late and
+// fails on every insert.
+feeScheduleSchema.pre('validate', function(next) {
   if (this.feeItems && this.feeItems.length > 0) {
     this.totalAmount = this.feeItems.reduce((total, item) => {
       return total + (item.isOptional ? 0 : item.amount);

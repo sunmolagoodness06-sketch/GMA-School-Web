@@ -56,15 +56,19 @@ gmaschool.edu.ng/
 │   ├── Results Viewer
 │   └── Exam History
 │
-└── Admin Console          /admin
+└── Admin Console          admin.<domain> (separate app: admin-frontend/)
+    ├── Dashboard (stats overview)
     ├── Student Management
-    ├── Staff Management
-    ├── Report Card Upload
-    ├── Fee & Billing Manager
-    ├── Application Review
-    ├── Exam Builder
-    └── Notifications
+    ├── Application Review (admission + career)
+    ├── Contact Messages
+    ├── Staff Management — not built yet
+    ├── Report Card Upload — not built yet
+    ├── Fee & Billing Manager — not built yet
+    ├── Exam Builder — not built yet
+    └── Notices — backend API exists, no admin UI yet
 ```
+
+> Architecture note: the admin console is now its own standalone Vite app (`admin-frontend/`), not a route inside the public site. This means it can be deployed to a real subdomain (e.g. `admin.gmaschool.edu.ng`) as a separate deployment/project once a domain is bought — a subdomain is free with any domain, no second purchase needed. It shares the same backend API as everything else.
 
 ---
 
@@ -213,11 +217,11 @@ gmaschool.edu.ng/
 - [x] Admissions page + online application form (React form → Express API) — rebuilt to match backend schema exactly, file uploads for all required documents, verified producing real application numbers end-to-end
 - [x] Academics page (all divisions)
 - [x] Careers page (cover letter is now a real file upload, verified submitting to backend)
-- [ ] Contact page with embedded map — page is done; the map is still an honest "Interactive map coming soon" placeholder, not a real Google Maps embed
+- [x] Contact page with embedded map — real Google Maps iframe embed using the actual school address, no API key needed
 - [x] Responsive design with CSS Grid/Flexbox — verified across every page at mobile/tablet/desktop widths
 - [x] CSS animations and scroll reveals (Intersection Observer)
-- [ ] SEO setup — added static title/description/OG/Twitter meta tags + robots.txt to index.html, but not per-page dynamic meta via React Helmet; also still missing canonical URL, og:image, and a real sitemap.xml (all blocked on having a production domain)
-- [ ] Deploy frontend to Netlify/Vercel, backend to Railway/Render — not started
+- [x] SEO setup — per-page dynamic `<SEO>` (React Helmet) title/description on every main public page (Home, About, Admissions, Academics, Careers, Contact, Privacy, Terms, Sitemap, Login, NotFound); ForgotPassword/ResetPassword still lack it (low priority, noindex-worthy anyway). Canonical URL, og:image, and a real sitemap.xml are still missing (blocked on having a production domain)
+- [ ] Deploy frontend to Netlify/Vercel, backend to Railway/Render, admin-frontend to its own subdomain — not started
 
 **Deliverable:** Live, brandable public website accepting applications
 
@@ -227,21 +231,29 @@ gmaschool.edu.ng/
 **Duration: Weeks 5–9**
 
 - [x] MongoDB Atlas setup or local MongoDB installation
-- [x] Mongoose ODM setup with schema definitions (User, Student, Application, CareerApplication, ReportCard, etc.)
-- [x] User authentication system (JWT tokens, bcrypt password hashing) — Login/Register/Forgot Password all built and verified working end-to-end against the live backend
+- [x] Mongoose ODM setup with schema definitions (User, Student, Application, CareerApplication, ContactMessage, ReportCard, etc.)
+- [x] User authentication system (JWT tokens, bcrypt password hashing) — Login/Forgot Password/Reset Password verified working end-to-end. Public self-registration was removed entirely (see note below) in favor of automatic account provisioning
+- [x] Login by email, phone number, **or student registration number** — not every parent has email, but everyone has a phone; students log in with their reg number (e.g. `GMA/PRI/2024/0001`) specifically, since they don't get their own email/phone on the account (avoids ever colliding with the parent's contact info, which is used as the parent account's login instead)
 - [x] Express.js middleware for auth protection and role-based access (`authenticateToken`, `authorizeRoles`, `ProtectedRoute`)
-- [x] MongoDB collections design (users, students, reportCards, etc.)
-- [ ] Student portal React components — dashboard, profile — Dashboard is built and verified matching the backend response shape; Profile is still a "Coming Soon" placeholder
+- [x] MongoDB collections design (users, students, contactMessages, etc.) — `Student.userId` = the student's own account, `Student.parentUserId` = the linked parent account (one parent account can link multiple children, for siblings)
+- [x] Transactional email (Resend) — contact/admission/career confirmations, school notification emails for every new submission, password reset links
+- [x] Transactional SMS (Termii, code wired up — needs a real `TERMII_API_KEY` to actually deliver) — portal credentials and password resets for parents without email
+- [x] **Automatic account provisioning** — approving an admission application auto-creates both a student account (reg-number login) and the parent's portal account (reusing one across siblings), links them via the Student record, and sends both sets of credentials to the parent's phone/email. No more manual re-entry of the same data into a second form
+- [x] Student portal — Dashboard (verified against the backend response shape) and Profile (account info + change-password form, replacing the old "Coming Soon" placeholder) are both built
 - [ ] Report card module — admin upload API, student view/download — not built (route is a "Coming Soon" placeholder)
 - [ ] Bills module — fee schedule display, payment status — not built (route is a "Coming Soon" placeholder)
-- [ ] Paystack integration — generate payment links via API — not started (env vars are still placeholders)
-- [ ] School notices module (CRUD operations) — not built on the frontend
-- [ ] Learning resources module (file upload with GridFS) — not built; note the file-upload work done this session used Cloudinary, not GridFS
-- [ ] Admin console React app — student management, staff management — not started (`/admin` is a "Coming Soon" placeholder)
-- [ ] Admin console — application review module — not started
+- [ ] Paystack integration — generate payment links via API — not started (test env vars are in place)
+- [ ] School notices module (CRUD operations) — backend API exists (`POST /admin/notices`); no admin UI page yet
+- [ ] Learning resources module (file upload) — not built; file uploads elsewhere (documents, photos, cover letters) use Cloudinary
+- [x] **Admin console app** — built as a separate standalone frontend (`admin-frontend/`), subdomain-ready. Includes: Dashboard (stats), Applications review (approve/reject/waitlist, auto-provisions on approval), Career Applications review, Contact Messages (view/reply/mark status), Students (search + manual create with the same phone/email-optional credential flow)
+- [ ] Staff management UI — backend endpoint exists (`POST /auth/admin/register`) but no admin-frontend page to list/create staff yet
 - [ ] Billing management panel for Bursar role — not started
 
 **Deliverable:** Fully functional student portal + core admin console
+
+> Note on the removed self-registration flow: earlier the plan assumed parents/students would sign themselves up via a public `/register` page. That page, its route, and its backend endpoint have been deleted — replaced by automatic provisioning on admission approval (see above), since manual self-registration was redundant and login-by-phone made "type your email to match our records" awkward for phone-only parents. The header/footer "Apply Now" CTA and the Login page's footer link both now point straight to the Admissions form.
+
+> Bug fixed in passing: the parent dashboard (`GET /student/dashboard`) looked up the child only by matching `parentInfo.email`, which silently broke for any parent who logged in by phone (no email on the account) or who was linked through the newer `parentUserId` field. Now checks `parentUserId` first, falling back to email/phone contact matching.
 
 ---
 
@@ -436,7 +448,7 @@ gmaschool.edu.ng/
 Before development starts, gather the following:
 
 - [x] School name, tagline, mission statement — Goodness and Mercy Academy (GMA), "Excellence in Education, Character in Life," founded 2014
-- [ ] Logo (SVG or high-res PNG) — currently a placeholder graduation-cap mark I drew; needs the real school logo
+- [x] Logo — redrawn as a clean SVG crest (`SchoolCrest.jsx`) based on the real physical school crest, approved and live in the Header, Footer, and auth pages. **Remaining:** `frontend/public/favicon.svg` (the actual browser-tab icon) is still the old placeholder graduation-cap mark — it's a static file, not a React component, so the new crest needs to be exported/redrawn as a standalone SVG file to replace it
 - [x] Division structure and class list — Nursery, Primary, Secondary, College/Sixth Form, each with age ranges
 - [ ] Staff photos and bios (Principal, key teachers) — About page's Leadership Team section has clearly-marked placeholders waiting on this
 - [ ] Student success stories / testimonials (with parent permission) — existing testimonials on the homepage are unconfirmed placeholder content, not verified as real
@@ -452,17 +464,39 @@ Before development starts, gather the following:
 ## Go-Live Checklist
 
 - [x] All pages reviewed on mobile and desktop — verified at mobile/tablet/desktop breakpoints across every page
-- [ ] Application form tested end-to-end (submission → admin sees it) — submission itself is verified working (produces a real application number in MongoDB), but there's no admin console yet to "see it"
+- [x] Application form tested end-to-end (submission → admin sees it) — verified fully: submission produces a real application number, appears in the admin console's Applications page, and approving it auto-creates the parent's portal account
 - [ ] Student portal login tested with real student account — auth flow is verified working against the live backend, but not yet with a real enrolled student's seeded data
-- [ ] Paystack test mode payments confirmed working — not started (env vars still placeholders)
+- [ ] Paystack test mode payments confirmed working — not started (test keys are in `.env`, no integration code yet)
 - [ ] CBT exam completed full run (create → take → auto-score → results) — not started, no CBT code exists yet
 - [ ] Report card upload and student download tested — not started
-- [ ] All admin roles tested (bursar, teacher, super admin) — not started, admin console doesn't exist yet
+- [ ] All admin roles tested (bursar, teacher, super admin) — admin/staff login and the core review workflows (applications, career applications, messages, students) are verified working; bursar-specific billing features don't exist yet
 - [ ] SSL certificate active (HTTPS) — not applicable yet, site isn't deployed
 - [ ] Google Analytics or Plausible installed — not started
-- [ ] 404 and error pages styled — the 404 route exists but has no dedicated CSS, just falls back to default global text styling
+- [x] 404 and error pages styled — dedicated `NotFound.jsx` page matching the site's design (crest, quick links, Back to Home / Contact Us)
 - [ ] Backup and restore process documented — not started
 
 ---
 
-*Plan version 1.0 — GMA School Website System*
+## What's Next
+
+**Quick wins (small, high-value, do anytime):**
+- [ ] Replace `frontend/public/favicon.svg` with the real crest — currently the only place the old placeholder mark still shows up
+- [ ] Get a real `TERMII_API_KEY` (+ approved sender ID) — SMS code is fully wired up but can't deliver without it, which matters most for parents without email and for every student login (always sent via the parent's contact, never has its own)
+- [ ] Verify a custom domain in Resend — currently email can only deliver to one sandbox address
+- [ ] Notices admin UI — backend API already exists, just needs a page in `admin-frontend/`
+- [ ] Staff management UI — backend endpoint exists, just needs a page to list/create staff accounts
+- [ ] Change-password UI in the **admin console** specifically (the student/parent portal now has this; the seeded admin password should still be rotated via the API directly for now)
+- [ ] A way for a parent with more than one child to switch between them — right now the dashboard and profile both only show/link the first child found
+
+**Bigger next milestone — finish the Phase 2 student/parent portal:**
+Profile (account info + password change) and Dashboard are done. Report Cards, Bills & Payments, and Paystack integration are still "Coming Soon" placeholders — that's the biggest remaining gap versus the original plan.
+
+**After that — deployment:**
+Public site, backend API, and admin console are all functionally ready for a first deploy (frontend/backend to Netlify+Railway or similar, admin-frontend to its own subdomain) once a domain is bought. Real users touching the live system tends to surface issues faster than more local building.
+
+**Later — Phase 3 (CBT exam system):**
+Not started at all yet; lowest priority until the portal and deployment are solid, since it's the most complex remaining piece (timed exams, anti-cheat, auto-scoring).
+
+---
+
+*Plan version 1.2 — GMA School Website System*
