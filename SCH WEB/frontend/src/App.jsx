@@ -35,6 +35,7 @@ import Dashboard from './pages/portal/Dashboard';
 import Profile from './pages/portal/Profile';
 import ReportCards from './pages/portal/ReportCards';
 import Bills from './pages/portal/Bills';
+import Notices from './pages/portal/Notices';
 
 // Layout component for public pages
 const PublicLayout = ({ children }) => (
@@ -78,7 +79,7 @@ function App() {
                 <Route path="profile" element={<Profile />} />
                 <Route path="report-cards" element={<ReportCards />} />
                 <Route path="bills" element={<Bills />} />
-                <Route path="notices" element={<div>Notices - Coming Soon</div>} />
+                <Route path="notices" element={<Notices />} />
                 <Route path="resources" element={<div>Learning Resources - Coming Soon</div>} />
               </Route>
 

@@ -447,6 +447,10 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.3s ease;
+  /* Buttons don't inherit body text color by default — without this,
+     browsers in dark mode apply their own default (light) button text
+     color, making the currentColor icon invisible on the white header. */
+  color: var(--color-text-primary);
 }
 
 .sidebar-toggle:hover {
@@ -751,6 +755,7 @@
 }
 
 .quick-action {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -769,6 +774,24 @@
 .quick-action:hover {
   background: var(--color-navy);
   color: white;
+}
+
+.quick-action-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-error);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  line-height: 1;
 }
 
 .stats-grid {

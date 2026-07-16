@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
+import PasswordField from '../components/PasswordField';
 
 const Settings = () => {
   const { user, apiCall } = useAuth();
@@ -71,8 +72,7 @@ const Settings = () => {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Current Password</label>
-            <input
-              type="password"
+            <PasswordField
               name="currentPassword"
               required
               value={passwords.currentPassword}
@@ -81,8 +81,7 @@ const Settings = () => {
           </div>
           <div className="form-group">
             <label>New Password</label>
-            <input
-              type="password"
+            <PasswordField
               name="newPassword"
               required
               minLength={6}
@@ -92,8 +91,7 @@ const Settings = () => {
           </div>
           <div className="form-group">
             <label>Confirm New Password</label>
-            <input
-              type="password"
+            <PasswordField
               name="confirmPassword"
               required
               minLength={6}

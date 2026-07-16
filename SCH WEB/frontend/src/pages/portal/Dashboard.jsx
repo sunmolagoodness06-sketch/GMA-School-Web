@@ -102,11 +102,16 @@ const Dashboard = () => {
             <SVGIcon name="file-text" size="24" />
             <span>Report Cards</span>
           </Link>
-          <Link to="/portal/bills" className="quick-action">
-            <SVGIcon name="credit-card" size="24" />
-            <span>Bills</span>
-          </Link>
+          {user?.role !== 'student' && (
+            <Link to="/portal/bills" className="quick-action">
+              <SVGIcon name="credit-card" size="24" />
+              <span>Bills</span>
+            </Link>
+          )}
           <Link to="/portal/notices" className="quick-action">
+            {stats?.unreadNotices > 0 && (
+              <span className="quick-action-badge">{stats.unreadNotices > 9 ? '9+' : stats.unreadNotices}</span>
+            )}
             <SVGIcon name="bell" size="24" />
             <span>Notices</span>
           </Link>
@@ -115,22 +120,24 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <SVGIcon name="credit-card" size="32" />
-          </div>
-          <div className="stat-info">
-            <h3>Outstanding Balance</h3>
-            <div className={`stat-value ${stats?.totalOwed > 0 ? 'amount-owed' : 'amount-clear'}`}>
-              {formatCurrency(stats?.totalOwed || 0)}
+        {user?.role !== 'student' && (
+          <div className="stat-card">
+            <div className="stat-icon">
+              <SVGIcon name="credit-card" size="32" />
             </div>
-            {stats?.overdueCount > 0 && (
-              <p className="stat-note overdue">
-                {stats.overdueCount} overdue payment{stats.overdueCount > 1 ? 's' : ''}
-              </p>
-            )}
+            <div className="stat-info">
+              <h3>Outstanding Balance</h3>
+              <div className={`stat-value ${stats?.totalOwed > 0 ? 'amount-owed' : 'amount-clear'}`}>
+                {formatCurrency(stats?.totalOwed || 0)}
+              </div>
+              {stats?.overdueCount > 0 && (
+                <p className="stat-note overdue">
+                  {stats.overdueCount} overdue payment{stats.overdueCount > 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="stat-card">
           <div className="stat-icon">
@@ -157,41 +164,43 @@ const Dashboard = () => {
 
       {/* Recent Activity */}
       <div className="recent-activity">
-        <div className="activity-section">
-          <div className="section-header">
-            <h2>Recent Bills</h2>
-            <Link to="/portal/bills" className="view-all">
-              View All <SVGIcon name="arrowRight" size="16" />
-            </Link>
-          </div>
-          
-          <div className="activity-cards">
-            {recentActivity?.invoices?.length > 0 ? (
-              recentActivity.invoices.map((invoice, index) => (
-                <div key={index} className="activity-card">
-                  <div className="activity-icon">
-                    <SVGIcon name="credit-card" size="20" />
+        {user?.role !== 'student' && (
+          <div className="activity-section">
+            <div className="section-header">
+              <h2>Recent Bills</h2>
+              <Link to="/portal/bills" className="view-all">
+                View All <SVGIcon name="arrowRight" size="16" />
+              </Link>
+            </div>
+
+            <div className="activity-cards">
+              {recentActivity?.invoices?.length > 0 ? (
+                recentActivity.invoices.map((invoice, index) => (
+                  <div key={index} className="activity-card">
+                    <div className="activity-icon">
+                      <SVGIcon name="credit-card" size="20" />
+                    </div>
+                    <div className="activity-info">
+                      <h4>{invoice.term} Term {invoice.session}</h4>
+                      <p>{formatCurrency(invoice.balance)} due</p>
+                      <span className={`status ${invoice.status}`}>
+                        {invoice.status === 'overdue' ? 'Overdue' : 'Pending'}
+                      </span>
+                    </div>
+                    <div className="activity-date">
+                      {new Date(invoice.dueDate).toLocaleDateString()}
+                    </div>
                   </div>
-                  <div className="activity-info">
-                    <h4>{invoice.term} Term {invoice.session}</h4>
-                    <p>{formatCurrency(invoice.balance)} due</p>
-                    <span className={`status ${invoice.status}`}>
-                      {invoice.status === 'overdue' ? 'Overdue' : 'Pending'}
-                    </span>
-                  </div>
-                  <div className="activity-date">
-                    {new Date(invoice.dueDate).toLocaleDateString()}
-                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <SVGIcon name="checkCircle" size="48" />
+                  <p>No outstanding bills</p>
                 </div>
-              ))
-            ) : (
-              <div className="empty-state">
-                <SVGIcon name="checkCircle" size="48" />
-                <p>No outstanding bills</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="activity-section">
           <div className="section-header">

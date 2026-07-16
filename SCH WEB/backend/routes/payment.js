@@ -2,7 +2,6 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import crypto from 'crypto';
 import Invoice from '../models/Invoice.js';
-import Student from '../models/Student.js';
 import { authenticateToken, authorizeStudentAccess } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -39,16 +38,14 @@ router.post('/initialize', authenticateToken, [
       });
     }
 
-    // Check if user has access to this invoice
+    // Check if user has access to this invoice — billing is a parent/staff/
+    // admin concern, students don't make or view payments on their own account
     const { role } = req.user;
     if (role === 'student') {
-      const student = await Student.findOne({ userId: req.userId });
-      if (!student || student._id.toString() !== invoice.studentId._id.toString()) {
-        return res.status(403).json({
-          success: false,
-          message: 'Access denied'
-        });
-      }
+      return res.status(403).json({
+        success: false,
+        message: 'Students do not have access to billing information'
+      });
     } else if (role === 'parent') {
       if (invoice.studentId.parentInfo.email !== req.user.email) {
         return res.status(403).json({
@@ -161,6 +158,13 @@ router.post('/initialize', authenticateToken, [
 // Verify payment status
 router.get('/verify/:reference', authenticateToken, async (req, res) => {
   try {
+    if (req.user.role === 'student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Students do not have access to billing information'
+      });
+    }
+
     const { reference } = req.params;
 
     // Verify payment with Paystack
@@ -335,6 +339,13 @@ async function handleSuccessfulPayment(transactionData) {
 // Get payment history for a student
 router.get('/history/:studentId', authenticateToken, authorizeStudentAccess, async (req, res) => {
   try {
+    if (req.userRole === 'student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Students do not have access to billing information'
+      });
+    }
+
     const { studentId } = req.params;
     const { page = 1, limit = 10 } = req.query;
 

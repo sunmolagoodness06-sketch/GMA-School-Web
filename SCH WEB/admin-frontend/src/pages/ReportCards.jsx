@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useDialog } from '../contexts/DialogContext';
 import { API_BASE_URL } from '../config/api';
 import Icon from '../components/Icon';
 
@@ -7,6 +8,7 @@ const TERMS = ['first', 'second', 'third'];
 
 const ReportCards = () => {
   const { apiCall, token } = useAuth();
+  const { confirmDialog } = useDialog();
   const [reportCards, setReportCards] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, total: 1 });
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +50,7 @@ const ReportCards = () => {
   };
 
   const handleDelete = async (reportCardId) => {
-    if (!window.confirm('Delete this report card?')) return;
+    if (!(await confirmDialog('Delete this report card? This cannot be undone.', { confirmLabel: 'Delete' }))) return;
     const { data } = await apiCall(`/admin/report-cards/${reportCardId}`, { method: 'DELETE' });
     if (data.success) {
       setReportCards((prev) => prev.filter((rc) => rc._id !== reportCardId));

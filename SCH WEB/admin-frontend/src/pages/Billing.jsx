@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useDialog } from '../contexts/DialogContext';
 import Icon from '../components/Icon';
 
 const DIVISIONS = ['nursery', 'primary', 'secondary', 'college'];
@@ -16,6 +17,7 @@ const emptyScheduleForm = {
 
 const Billing = () => {
   const { apiCall } = useAuth();
+  const { alertDialog } = useDialog();
   const [tab, setTab] = useState('invoices');
 
   // Invoices
@@ -131,7 +133,7 @@ const Billing = () => {
     const { data } = await apiCall(`/admin/fee-schedules/${scheduleId}/generate-invoices`, { method: 'POST' });
     setGeneratingFor(null);
     if (data.success) {
-      alert(data.message);
+      await alertDialog(data.message, { title: 'Invoices Generated' });
       if (tab === 'invoices') fetchInvoices(1);
     }
   };

@@ -74,19 +74,22 @@ router.get('/dashboard', authenticateToken, authorizeRoles('student', 'parent', 
     // Get recent report cards
     const recentReportCards = await ReportCard.findByStudent(studentId, student.session);
 
-    // Get outstanding invoices
-    const outstandingInvoices = await Invoice.find({
-      studentId,
-      status: { $in: ['pending', 'partial', 'overdue'] },
-      isActive: true
-    }).limit(5);
+    // Billing is a parent/staff/admin concern — students don't see fee info,
+    // so skip the query entirely rather than just hiding it in the response
+    const outstandingInvoices = req.userRole === 'student'
+      ? []
+      : await Invoice.find({
+          studentId,
+          status: { $in: ['pending', 'partial', 'overdue'] },
+          isActive: true
+        }).limit(5);
 
     // Get recent notices for student's division
     const recentNotices = await Notice.findForUser(req.userRole, student.division).limit(5);
 
     // Calculate dashboard stats
     const totalOwed = outstandingInvoices.reduce((sum, invoice) => sum + invoice.balance, 0);
-    const overdueCount = outstandingInvoices.filter(invoice => 
+    const overdueCount = outstandingInvoices.filter(invoice =>
       invoice.status === 'overdue' || invoice.dueDate < new Date()
     ).length;
 
@@ -101,16 +104,15 @@ router.get('/dashboard', authenticateToken, authorizeRoles('student', 'parent', 
         photoUrl: student.photoUrl
       },
       stats: {
-        totalOwed,
-        overdueCount,
+        ...(req.userRole !== 'student' && { totalOwed, overdueCount }),
         recentReportCards: recentReportCards.length,
-        unreadNotices: recentNotices.filter(notice => 
+        unreadNotices: recentNotices.filter(notice =>
           !notice.hasUserRead(req.userId)
         ).length
       },
       recentActivity: {
         reportCards: recentReportCards.slice(0, 3),
-        invoices: outstandingInvoices.slice(0, 3),
+        ...(req.userRole !== 'student' && { invoices: outstandingInvoices.slice(0, 3) }),
         notices: recentNotices.slice(0, 3)
       }
     };
@@ -157,9 +159,17 @@ router.get('/:studentId/report-cards', authenticateToken, authorizeStudentAccess
   }
 });
 
-// Get student invoices and bills
+// Get student invoices and bills — billing is a parent/staff/admin concern,
+// students don't see fees or payment info about their own account
 router.get('/:studentId/invoices', authenticateToken, authorizeStudentAccess, async (req, res) => {
   try {
+    if (req.userRole === 'student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Students do not have access to billing information'
+      });
+    }
+
     const { studentId } = req.params;
     const { status, session } = req.query;
 

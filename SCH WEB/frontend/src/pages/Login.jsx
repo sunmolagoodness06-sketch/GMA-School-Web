@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import SVGIcon from '../components/icons/SVGIcon';
 import AuthBranding from '../components/AuthBranding';
 import SEO from '../components/SEO';
+import PasswordField from '../components/PasswordField';
 
 const REMEMBERED_EMAIL_KEY = 'gma_remembered_identifier';
 
@@ -138,18 +139,14 @@ const Login = () => {
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <div className="input-with-icon">
-                <SVGIcon name="lock" size="20" />
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  required
-                />
-              </div>
+              <PasswordField
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                required
+              />
             </div>
 
             <div className="form-options">

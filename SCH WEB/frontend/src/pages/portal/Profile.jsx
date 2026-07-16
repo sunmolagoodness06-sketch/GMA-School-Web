@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import SVGIcon from '../../components/icons/SVGIcon';
+import PasswordField from '../../components/PasswordField';
 
 const roleLabel = { student: 'Student', parent: 'Parent', staff: 'Staff', admin: 'Admin' };
 
@@ -100,8 +101,8 @@ const Profile = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">Current Password</label>
-              <input
-                type="password"
+              <PasswordField
+                icon={false}
                 name="currentPassword"
                 className="form-input"
                 value={passwords.currentPassword}
@@ -111,8 +112,8 @@ const Profile = () => {
             </div>
             <div className="form-group">
               <label className="form-label">New Password</label>
-              <input
-                type="password"
+              <PasswordField
+                icon={false}
                 name="newPassword"
                 className="form-input"
                 value={passwords.newPassword}
@@ -123,8 +124,8 @@ const Profile = () => {
             </div>
             <div className="form-group">
               <label className="form-label">Confirm New Password</label>
-              <input
-                type="password"
+              <PasswordField
+                icon={false}
                 name="confirmPassword"
                 className="form-input"
                 value={passwords.confirmPassword}

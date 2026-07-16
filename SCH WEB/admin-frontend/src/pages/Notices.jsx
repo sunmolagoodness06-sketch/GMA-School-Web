@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useDialog } from '../contexts/DialogContext';
 import Icon from '../components/Icon';
 
 const CATEGORIES = ['general', 'academic', 'fees', 'events', 'holidays', 'emergency', 'maintenance', 'exam', 'admission'];
@@ -18,6 +19,7 @@ const emptyForm = {
 
 const Notices = () => {
   const { apiCall } = useAuth();
+  const { confirmDialog } = useDialog();
   const [notices, setNotices] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, total: 1 });
   const [publishedFilter, setPublishedFilter] = useState('');
@@ -54,19 +56,30 @@ const Notices = () => {
   };
 
   const deleteNotice = async (noticeId) => {
-    if (!window.confirm('Delete this notice?')) return;
+    if (!(await confirmDialog('Delete this notice? This cannot be undone.', { confirmLabel: 'Delete' }))) return;
     const { data } = await apiCall(`/admin/notices/${noticeId}`, { method: 'DELETE' });
     if (data.success) {
       setNotices((prev) => prev.filter((n) => n._id !== noticeId));
     }
   };
 
+  // "All" and specific selections are mutually exclusive — the backend
+  // treats "all" as a wildcard, so leaving it selected alongside specific
+  // roles/divisions would silently broadcast to everyone regardless of the
+  // other choices.
   const toggleMulti = (field, value) => {
     setForm((prev) => {
       const current = prev.targetAudience[field];
-      const next = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value];
+      let next;
+
+      if (value === 'all') {
+        next = current.includes('all') ? [] : ['all'];
+      } else if (current.includes(value)) {
+        next = current.filter((v) => v !== value);
+      } else {
+        next = [...current.filter((v) => v !== 'all'), value];
+      }
+
       return { ...prev, targetAudience: { ...prev.targetAudience, [field]: next } };
     });
   };
