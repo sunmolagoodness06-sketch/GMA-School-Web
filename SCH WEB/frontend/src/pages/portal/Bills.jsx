@@ -8,7 +8,7 @@ const formatCurrency = (amount) =>
   new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount || 0);
 
 const Bills = () => {
-  const { apiCall } = useAuth();
+  const { user, apiCall } = useAuth();
   const { selectedChildId } = useSelectedChild();
   const [searchParams, setSearchParams] = useSearchParams();
   const [invoices, setInvoices] = useState([]);
@@ -74,6 +74,18 @@ const Bills = () => {
       setPayingId(null);
     }
   };
+
+  if (user?.role === 'student') {
+    return (
+      <div className="dashboard">
+        <div className="card">
+          <div className="card-body">
+            <p>Bills & Payments isn't available on a student account. A parent can view and pay fees from their own portal login.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

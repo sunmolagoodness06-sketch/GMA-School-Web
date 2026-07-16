@@ -410,6 +410,20 @@ const SVGIcon = ({ name, size = 24, className = '', color = 'currentColor', ...p
         <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
         <path d="M6 12v5c3 3 9 3 12 0v-5"/>
       </svg>
+    ),
+
+    // Show/hide password
+    eye: (
+      <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    ),
+    'eye-off': (
+      <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
+        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.6 18.6 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a18.6 18.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      </svg>
     )
   };
 

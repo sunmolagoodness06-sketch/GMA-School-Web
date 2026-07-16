@@ -40,9 +40,17 @@ const connectDB = async () => {
     console.log('Attempting to connect to MongoDB...');
     console.log('MongoDB URI:', mongoUri.replace(/\/\/.*@/, '//***:***@')); // Hide credentials in logs
     
-    // Set a timeout for MongoDB connection
+    // 5s was cutting it too close on this network path — a direct connectivity
+    // check showed the initial handshake alone can take ~4.6s (DNS + TLS +
+    // replica set discovery across 3 shard hosts), so 5s produced an
+    // intermittent pass/fail race rather than a real outage. socketTimeoutMS
+    // and minPoolSize give the same margin to in-flight operations and keep
+    // a couple of connections warm so requests don't have to renegotiate a
+    // fresh connection from scratch as often.
     const connectPromise = mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 5000, // 5 second timeout
+      serverSelectionTimeoutMS: 20000,
+      socketTimeoutMS: 30000,
+      minPoolSize: 2,
     });
     
     await connectPromise;

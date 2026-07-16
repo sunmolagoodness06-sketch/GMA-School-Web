@@ -66,10 +66,12 @@ const PortalLayout = () => {
     },
     {
       path: '/portal/resources',
-      icon: 'book-open',
+      icon: 'bookOpen',
       label: 'Learning Resources'
     }
-  ];
+  // Bills & Payments is a parent/staff/admin concern — students don't
+  // manage fees for their own account
+  ].filter((item) => item.path !== '/portal/bills' || user?.role !== 'student');
 
   const isActive = (item) => {
     if (item.exact) {

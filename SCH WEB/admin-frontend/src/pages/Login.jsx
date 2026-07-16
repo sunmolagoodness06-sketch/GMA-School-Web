@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SchoolCrest from '../components/SchoolCrest';
 import Icon from '../components/Icon';
+import PasswordField from '../components/PasswordField';
 
 const Login = () => {
   const [identifier, setIdentifier] = useState('');
@@ -62,8 +63,7 @@ const Login = () => {
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
+            <PasswordField
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SVGIcon from '../components/icons/SVGIcon';
 import AuthBranding from '../components/AuthBranding';
+import PasswordField from '../components/PasswordField';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -65,41 +66,33 @@ const ResetPassword = () => {
 
             <div className="form-group">
               <label htmlFor="password">New Password</label>
-              <div className="input-with-icon">
-                <SVGIcon name="lock" size="20" />
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (error) setError('');
-                  }}
-                  placeholder="Create a new password"
-                  minLength="6"
-                  required
-                />
-              </div>
+              <PasswordField
+                id="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError('');
+                }}
+                placeholder="Create a new password"
+                minLength="6"
+                required
+              />
               <small className="form-help">Must be at least 6 characters long</small>
             </div>
 
             <div className="form-group">
               <label htmlFor="confirmPassword">Confirm New Password</label>
-              <div className="input-with-icon">
-                <SVGIcon name="lock" size="20" />
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                    if (error) setError('');
-                  }}
-                  placeholder="Confirm your new password"
-                  minLength="6"
-                  required
-                />
-              </div>
+              <PasswordField
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (error) setError('');
+                }}
+                placeholder="Confirm your new password"
+                minLength="6"
+                required
+              />
             </div>
 
             <button

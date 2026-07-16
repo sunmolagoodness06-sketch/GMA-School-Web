@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Icon from '../components/Icon';
+import PasswordField from '../components/PasswordField';
 
 const DIVISIONS = ['nursery', 'primary', 'secondary', 'college'];
 
@@ -171,8 +172,7 @@ const Staff = () => {
 
               <div className="form-group">
                 <label>Password</label>
-                <input
-                  type="password"
+                <PasswordField
                   required
                   minLength={6}
                   value={form.password}

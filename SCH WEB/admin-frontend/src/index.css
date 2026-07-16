@@ -190,6 +190,32 @@ button {
   border-color: var(--color-navy);
 }
 
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  padding: var(--space-1);
+}
+
+.password-toggle-btn:hover {
+  color: var(--color-text-primary);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -457,6 +483,16 @@ button {
   border: none;
   cursor: pointer;
   color: var(--color-text-secondary);
+}
+
+.dialog-panel {
+  max-width: 420px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
 }
 
 /* Spinner */

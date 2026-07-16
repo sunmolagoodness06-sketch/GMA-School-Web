@@ -156,6 +156,10 @@ noticeSchema.statics.findForUser = function(userRole, userDivision = null) {
     isActive: true,
     publishDate: { $lte: now },
     expiryDate: { $gte: now },
+    // Roles and divisions must BOTH match (each as their own "all-or-specific"
+    // OR-group) — these need to stay in separate $or/$and clauses, not one
+    // flattened $or, otherwise matching on division alone (regardless of
+    // role) would let a notice leak to roles it was never scoped to.
     $or: [
       { 'targetAudience.roles': 'all' },
       { 'targetAudience.roles': userRole }
@@ -163,10 +167,12 @@ noticeSchema.statics.findForUser = function(userRole, userDivision = null) {
   };
 
   if (userDivision && userRole !== 'admin') {
-    query.$or.push(
-      { 'targetAudience.divisions': 'all' },
-      { 'targetAudience.divisions': userDivision }
-    );
+    query.$and = [
+      { $or: [
+        { 'targetAudience.divisions': 'all' },
+        { 'targetAudience.divisions': userDivision }
+      ] }
+    ];
   }
 
   return this.find(query).sort({ isPinned: -1, priority: -1, publishDate: -1 });
