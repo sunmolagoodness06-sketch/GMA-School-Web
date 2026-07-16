@@ -13,7 +13,7 @@ const PasswordField = ({ icon = true, className = '', ...inputProps }) => {
       <input
         type={visible ? 'text' : 'password'}
         className={className}
-        style={{ paddingRight: '44px' }}
+        style={{ paddingRight: '48px' }}
         {...inputProps}
       />
       <button

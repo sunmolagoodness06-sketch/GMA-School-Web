@@ -6,7 +6,7 @@ const PasswordField = (inputProps) => {
 
   return (
     <div className="password-field">
-      <input type={visible ? 'text' : 'password'} style={{ paddingRight: '40px' }} {...inputProps} />
+      <input type={visible ? 'text' : 'password'} style={{ paddingRight: '48px' }} {...inputProps} />
       <button
         type="button"
         className="password-toggle-btn"
