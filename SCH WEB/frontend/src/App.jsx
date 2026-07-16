@@ -23,14 +23,18 @@ import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Sitemap from './pages/Sitemap';
+import NotFound from './pages/NotFound';
 
 // Auth Pages
 import Login from './pages/Login';
-import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Portal Pages
 import Dashboard from './pages/portal/Dashboard';
+import Profile from './pages/portal/Profile';
+import ReportCards from './pages/portal/ReportCards';
+import Bills from './pages/portal/Bills';
 
 // Layout component for public pages
 const PublicLayout = ({ children }) => (
@@ -61,8 +65,8 @@ function App() {
 
               {/* Authentication Routes */}
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
 
               {/* Protected Portal Routes */}
               <Route path="/portal" element={
@@ -71,9 +75,9 @@ function App() {
                 </ProtectedRoute>
               }>
                 <Route index element={<Dashboard />} />
-                <Route path="profile" element={<div>Profile Page - Coming Soon</div>} />
-                <Route path="report-cards" element={<div>Report Cards - Coming Soon</div>} />
-                <Route path="bills" element={<div>Bills & Payments - Coming Soon</div>} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="report-cards" element={<ReportCards />} />
+                <Route path="bills" element={<Bills />} />
                 <Route path="notices" element={<div>Notices - Coming Soon</div>} />
                 <Route path="resources" element={<div>Learning Resources - Coming Soon</div>} />
               </Route>
@@ -86,14 +90,7 @@ function App() {
               } />
 
               {/* 404 Page */}
-              <Route path="*" element={
-                <PublicLayout>
-                  <div className="not-found">
-                    <h1>Page Not Found</h1>
-                    <p>The page you're looking for doesn't exist.</p>
-                  </div>
-                </PublicLayout>
-              } />
+              <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
             </Routes>
           </div>
         </Router>

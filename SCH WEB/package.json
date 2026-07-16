@@ -7,8 +7,10 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd backend && npm run dev",
     "client": "cd frontend && npm run dev",
+    "admin": "cd admin-frontend && npm run dev",
     "build": "cd frontend && npm run build",
-    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+    "build-admin": "cd admin-frontend && npm run build",
+    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../admin-frontend && npm install"
   },
   "keywords": ["school", "education", "react", "nodejs", "mongodb"],
   "author": "GMA School",

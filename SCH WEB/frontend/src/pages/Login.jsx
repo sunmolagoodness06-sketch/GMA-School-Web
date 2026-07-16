@@ -5,11 +5,18 @@ import SVGIcon from '../components/icons/SVGIcon';
 import AuthBranding from '../components/AuthBranding';
 import SEO from '../components/SEO';
 
-const REMEMBERED_EMAIL_KEY = 'gma_remembered_email';
+const REMEMBERED_EMAIL_KEY = 'gma_remembered_identifier';
+
+const ACCOUNT_TYPES = [
+  { value: 'parent', label: 'Parent', icon: 'users' },
+  { value: 'student', label: 'Student', icon: 'graduation-cap' },
+  { value: 'staff', label: 'Staff', icon: 'briefcase' }
+];
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: localStorage.getItem(REMEMBERED_EMAIL_KEY) || '',
+    role: 'parent',
+    identifier: localStorage.getItem(REMEMBERED_EMAIL_KEY) || '',
     password: ''
   });
   const [rememberMe, setRememberMe] = useState(!!localStorage.getItem(REMEMBERED_EMAIL_KEY));
@@ -45,11 +52,11 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
-    const result = await login(formData.email, formData.password);
+    const result = await login(formData.identifier, formData.password, formData.role);
 
     if (result.success) {
       if (rememberMe) {
-        localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email);
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.identifier);
       } else {
         localStorage.removeItem(REMEMBERED_EMAIL_KEY);
       }
@@ -97,16 +104,33 @@ const Login = () => {
             )}
 
             <div className="form-group">
-              <label htmlFor="email">Email Address</label>
+              <label>I am a</label>
+              <div className="role-toggle">
+                {ACCOUNT_TYPES.map((type) => (
+                  <button
+                    key={type.value}
+                    type="button"
+                    className={`role-toggle-option ${formData.role === type.value ? 'role-toggle-option-active' : ''}`}
+                    onClick={() => setFormData({ ...formData, role: type.value })}
+                  >
+                    <SVGIcon name={type.icon} size="18" />
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="identifier">{formData.role === 'student' ? 'Registration Number' : 'Email or Phone Number'}</label>
               <div className="input-with-icon">
-                <SVGIcon name="mail" size="20" />
+                <SVGIcon name={formData.role === 'student' ? 'graduation-cap' : 'mail'} size="20" />
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  id="identifier"
+                  name="identifier"
+                  value={formData.identifier}
                   onChange={handleChange}
-                  placeholder="Enter your email"
+                  placeholder={formData.role === 'student' ? 'e.g. GMA/PRI/2024/0001' : 'Enter your email or phone number'}
                   required
                 />
               </div>
@@ -163,7 +187,7 @@ const Login = () => {
           </form>
 
           <div className="login-footer">
-            <p>Don't have an account? <Link to="/register">Create Account</Link></p>
+            <p>New to GMA School? <Link to="/admissions">Start an Application</Link></p>
             <p className="login-footer-secondary">
               Need help? <Link to="/contact">Contact Administration</Link>
             </p>

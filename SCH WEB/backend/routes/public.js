@@ -2,7 +2,13 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Application from '../models/Application.js';
 import CareerApplication from '../models/CareerApplication.js';
+import ContactMessage from '../models/ContactMessage.js';
 import { uploadAdmissionDocuments, uploadCoverLetter } from '../middleware/upload.js';
+import {
+  sendContactConfirmation, sendAdmissionConfirmation, sendCareerConfirmation,
+  notifySchoolOfContact, notifySchoolOfAdmission, notifySchoolOfCareerApplication
+} from '../utils/email.js';
+import { sendAdmissionConfirmationSMS } from '../utils/sms.js';
 
 const router = express.Router();
 
@@ -24,8 +30,11 @@ router.post('/contact', [
 
     const { name, email, phone, message, subject } = req.body;
 
-    // TODO: Save to database and send email
+    await ContactMessage.create({ name, email, phone, subject, message });
+
     console.log('Contact form submission:', { name, email, phone, subject, message });
+    await sendContactConfirmation({ name, email });
+    await notifySchoolOfContact({ name, email, phone, subject, message });
 
     res.json({
       success: true,
@@ -50,7 +59,7 @@ router.post('/apply', uploadAdmissionDocuments, [
   body('classApplied').trim().notEmpty().withMessage('Class is required'),
   body('sessionApplied').trim().notEmpty().withMessage('Session is required'),
   body('fatherName').trim().isLength({ min: 2 }).withMessage('Father\'s name is required'),
-  body('fatherEmail').isEmail().withMessage('Valid father\'s email is required'),
+  body('fatherEmail').optional({ checkFalsy: true }).isEmail().withMessage('Please provide a valid email'),
   body('fatherPhone').trim().isLength({ min: 10 }).withMessage('Father\'s phone number is required'),
   body('motherName').trim().isLength({ min: 2 }).withMessage('Mother\'s name is required'),
   body('motherPhone').trim().isLength({ min: 10 }).withMessage('Mother\'s phone number is required')
@@ -123,8 +132,8 @@ router.post('/apply', uploadAdmissionDocuments, [
       parentInfo: {
         father: {
           name: fatherName,
-          email: fatherEmail,
-          phone: fatherPhone
+          phone: fatherPhone,
+          ...(fatherEmail && { email: fatherEmail })
         },
         mother: {
           name: motherName,
@@ -139,11 +148,32 @@ router.post('/apply', uploadAdmissionDocuments, [
 
     await application.save();
 
-    // TODO: Send confirmation email to parent
     console.log('Application submitted:', {
       applicationNumber,
       studentName: `${firstName} ${lastName}`,
-      parentEmail: fatherEmail
+      parentEmail: fatherEmail,
+      parentPhone: fatherPhone
+    });
+    if (fatherEmail) {
+      await sendAdmissionConfirmation({
+        parentEmail: fatherEmail,
+        studentName: `${firstName} ${lastName}`,
+        applicationNumber
+      });
+    } else {
+      await sendAdmissionConfirmationSMS({
+        phone: fatherPhone,
+        studentName: `${firstName} ${lastName}`,
+        applicationNumber
+      });
+    }
+    await notifySchoolOfAdmission({
+      studentName: `${firstName} ${lastName}`,
+      applicationNumber,
+      divisionApplied,
+      fatherName,
+      fatherEmail,
+      fatherPhone
     });
 
     res.status(201).json({
@@ -244,12 +274,13 @@ router.post('/careers/apply', uploadCoverLetter, [
 
     await careerApplication.save();
 
-    // TODO: Send confirmation email
     console.log('Career application submitted:', {
       id: careerApplication._id,
       fullName,
       position
     });
+    await sendCareerConfirmation({ email, fullName, position });
+    await notifySchoolOfCareerApplication({ fullName, email, phone, position, experience });
 
     res.json({
       success: true,

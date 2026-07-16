@@ -5,7 +5,7 @@ import SVGIcon from '../components/icons/SVGIcon';
 import AuthBranding from '../components/AuthBranding';
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -17,7 +17,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
     setError('');
 
-    const result = await forgotPassword(email);
+    const result = await forgotPassword(identifier);
 
     if (result.success) {
       setSubmitted(true);
@@ -44,13 +44,13 @@ const ForgotPassword = () => {
 
           <div className="login-header">
             <h1>Reset Password</h1>
-            <p>Enter your email and we'll send you instructions to reset your password.</p>
+            <p>Enter your email, phone number, or (for students) registration number, and we'll send reset instructions to the contact on file.</p>
           </div>
 
           {submitted ? (
             <div className="success-message">
               <SVGIcon name="checkCircle" size="20" />
-              <span>If an account exists for that email, you'll receive reset instructions shortly.</span>
+              <span>If an account exists, reset instructions have been sent to the contact on file (for students, that's their parent's contact).</span>
             </div>
           ) : (
             <form className="login-form" onSubmit={handleSubmit}>
@@ -62,19 +62,19 @@ const ForgotPassword = () => {
               )}
 
               <div className="form-group">
-                <label htmlFor="email">Email Address</label>
+                <label htmlFor="identifier">Email or Phone Number</label>
                 <div className="input-with-icon">
                   <SVGIcon name="mail" size="20" />
                   <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={email}
+                    type="text"
+                    id="identifier"
+                    name="identifier"
+                    value={identifier}
                     onChange={(e) => {
-                      setEmail(e.target.value);
+                      setIdentifier(e.target.value);
                       if (error) setError('');
                     }}
-                    placeholder="Enter your email"
+                    placeholder="Enter your email or phone number"
                     required
                   />
                 </div>

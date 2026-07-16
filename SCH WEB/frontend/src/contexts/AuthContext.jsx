@@ -58,14 +58,14 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, [token]);
 
-  const login = async (email, password) => {
+  const login = async (identifier, password, role) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ identifier, password, role })
       });
 
       const data = await response.json();
@@ -85,36 +85,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (payload) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      return await response.json();
-    } catch (error) {
-      console.error('Registration error:', error);
-      return { success: false, message: 'An error occurred during registration. Please try again.' };
-    }
-  };
-
-  const forgotPassword = async (email) => {
+  const forgotPassword = async (identifier) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ identifier })
       });
 
       return await response.json();
     } catch (error) {
       console.error('Forgot password error:', error);
+      return { success: false, message: 'Network error. Please try again.' };
+    }
+  };
+
+  const resetPassword = async (token, password) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password/${token}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+      });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Reset password error:', error);
       return { success: false, message: 'Network error. Please try again.' };
     }
   };
@@ -163,8 +163,8 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     isAuthenticated: !!user,
     login,
-    register,
     forgotPassword,
+    resetPassword,
     logout,
     updateUser,
     apiCall,

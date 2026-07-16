@@ -1,7 +1,26 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { SelectedChildProvider, useSelectedChild } from '../contexts/SelectedChildContext';
 import SVGIcon from './icons/SVGIcon';
+
+const ChildSwitcher = () => {
+  const { selectedChildId, setSelectedChildId, childOptions } = useSelectedChild();
+  if (childOptions.length <= 1) return null;
+
+  return (
+    <select
+      className="child-switcher"
+      value={selectedChildId || ''}
+      onChange={(e) => setSelectedChildId(e.target.value)}
+      aria-label="Select child"
+    >
+      {childOptions.map((child) => (
+        <option key={child.id} value={child.id}>{child.fullName}</option>
+      ))}
+    </select>
+  );
+};
 
 const PortalLayout = () => {
   const { user, logout } = useAuth();
@@ -60,11 +79,12 @@ const PortalLayout = () => {
   };
 
   return (
+    <SelectedChildProvider>
     <div className="portal-layout">
       {/* Top Navigation */}
       <header className="portal-header">
         <div className="header-left">
-          <button 
+          <button
             className="sidebar-toggle"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
@@ -78,18 +98,19 @@ const PortalLayout = () => {
         </div>
 
         <div className="header-right">
+          {user?.role === 'parent' && <ChildSwitcher />}
           <div className="user-menu">
             <div className="user-info">
               <span className="user-name">
-                {user?.student?.fullName || user?.email}
+                {user?.student?.fullName || user?.email || user?.phone}
               </span>
               <span className="user-role">
-                {user?.role === 'student' ? 'Student' : 
-                 user?.role === 'parent' ? 'Parent' : 
+                {user?.role === 'student' ? 'Student' :
+                 user?.role === 'parent' ? 'Parent' :
                  user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
               </span>
             </div>
-            
+
             <div className="user-avatar">
               {user?.student?.photoUrl ? (
                 <img src={user.student.photoUrl} alt="Profile" />
@@ -164,6 +185,7 @@ const PortalLayout = () => {
         </main>
       </div>
     </div>
+    </SelectedChildProvider>
   );
 };
 
