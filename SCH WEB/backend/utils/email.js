@@ -60,6 +60,22 @@ export const sendAdmissionConfirmation = async ({ parentEmail, studentName, appl
   });
 };
 
+const DECISION_LABELS = { admitted: 'admitted', rejected: 'not admitted', waitlisted: 'waitlisted' };
+
+export const sendAdmissionDecision = async ({ parentEmail, studentName, applicationNumber, decision, remarks }) => {
+  await send({
+    to: parentEmail,
+    subject: `Admission Decision — ${applicationNumber}`,
+    html: `
+      <p>Dear Parent/Guardian,</p>
+      <p>We have reviewed ${studentName}'s application (<strong>${applicationNumber}</strong>) and are writing to let
+        you know they have been <strong>${DECISION_LABELS[decision] || decision}</strong>.</p>
+      ${remarks ? `<p><strong>Remarks:</strong> ${remarks}</p>` : ''}
+      <p>— GMA School</p>
+    `
+  });
+};
+
 export const sendCareerConfirmation = async ({ email, fullName, position }) => {
   await send({
     to: email,

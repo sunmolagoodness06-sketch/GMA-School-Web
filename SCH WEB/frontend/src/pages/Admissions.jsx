@@ -18,9 +18,29 @@ const initialFormData = {
   fatherName: '',
   fatherEmail: '',
   fatherPhone: '',
+  fatherOccupation: '',
+  fatherAddress: '',
   motherName: '',
   motherEmail: '',
-  motherPhone: ''
+  motherPhone: '',
+  motherOccupation: '',
+  motherAddress: '',
+  guardianName: '',
+  guardianRelationship: '',
+  guardianPhone: '',
+  guardianEmail: '',
+  guardianAddress: '',
+  previousSchoolName: '',
+  previousSchoolAddress: '',
+  previousSchoolLastClass: '',
+  previousSchoolReasonForLeaving: '',
+  bloodGroup: '',
+  genotype: '',
+  allergies: '',
+  medications: '',
+  disabilities: '',
+  doctorName: '',
+  doctorPhone: ''
 };
 
 const initialFiles = {
@@ -323,6 +343,29 @@ const Admissions = () => {
                     </div>
                   </div>
 
+                  <div className="admissions-form-row">
+                    <div className="form-group">
+                      <label className="form-label">Occupation (optional)</label>
+                      <input
+                        type="text"
+                        name="fatherOccupation"
+                        value={formData.fatherOccupation}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Home Address (optional)</label>
+                      <input
+                        type="text"
+                        name="fatherAddress"
+                        value={formData.fatherAddress}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
                   <h4 className="admissions-form-section-title">Mother's Information</h4>
 
                   <div className="form-group">
@@ -357,6 +400,229 @@ const Admissions = () => {
                         onChange={handleChange}
                         className="form-input"
                         required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="admissions-form-row">
+                    <div className="form-group">
+                      <label className="form-label">Occupation (optional)</label>
+                      <input
+                        type="text"
+                        name="motherOccupation"
+                        value={formData.motherOccupation}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Home Address (optional)</label>
+                      <input
+                        type="text"
+                        name="motherAddress"
+                        value={formData.motherAddress}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <h4 className="admissions-form-section-title">Guardian Information (optional)</h4>
+                  <p className="admissions-form-hint">Only needed if someone other than a parent is a point of contact.</p>
+
+                  <div className="admissions-form-row">
+                    <div className="form-group">
+                      <label className="form-label">Full Name</label>
+                      <input
+                        type="text"
+                        name="guardianName"
+                        value={formData.guardianName}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Relationship to Student</label>
+                      <input
+                        type="text"
+                        name="guardianRelationship"
+                        value={formData.guardianRelationship}
+                        onChange={handleChange}
+                        className="form-input"
+                        placeholder="e.g., Uncle, Grandparent"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="admissions-form-row">
+                    <div className="form-group">
+                      <label className="form-label">Phone Number</label>
+                      <input
+                        type="tel"
+                        name="guardianPhone"
+                        value={formData.guardianPhone}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Email</label>
+                      <input
+                        type="email"
+                        name="guardianEmail"
+                        value={formData.guardianEmail}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Address</label>
+                    <input
+                      type="text"
+                      name="guardianAddress"
+                      value={formData.guardianAddress}
+                      onChange={handleChange}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <h4 className="admissions-form-section-title">Previous School (if applicable)</h4>
+
+                  <div className="admissions-form-row">
+                    <div className="form-group">
+                      <label className="form-label">School Name</label>
+                      <input
+                        type="text"
+                        name="previousSchoolName"
+                        value={formData.previousSchoolName}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Last Class Completed</label>
+                      <input
+                        type="text"
+                        name="previousSchoolLastClass"
+                        value={formData.previousSchoolLastClass}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">School Address</label>
+                    <input
+                      type="text"
+                      name="previousSchoolAddress"
+                      value={formData.previousSchoolAddress}
+                      onChange={handleChange}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Reason for Leaving</label>
+                    <input
+                      type="text"
+                      name="previousSchoolReasonForLeaving"
+                      value={formData.previousSchoolReasonForLeaving}
+                      onChange={handleChange}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <h4 className="admissions-form-section-title">Medical Information</h4>
+
+                  <div className="admissions-form-row">
+                    <div className="form-group">
+                      <label className="form-label">Blood Group</label>
+                      <select
+                        name="bloodGroup"
+                        value={formData.bloodGroup}
+                        onChange={handleChange}
+                        className="form-select"
+                      >
+                        <option value="">Select (if known)</option>
+                        {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
+                          <option key={bg} value={bg}>{bg}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Genotype</label>
+                      <select
+                        name="genotype"
+                        value={formData.genotype}
+                        onChange={handleChange}
+                        className="form-select"
+                      >
+                        <option value="">Select (if known)</option>
+                        {['AA', 'AS', 'SS', 'AC'].map((g) => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="admissions-form-row">
+                    <div className="form-group">
+                      <label className="form-label">Allergies</label>
+                      <input
+                        type="text"
+                        name="allergies"
+                        value={formData.allergies}
+                        onChange={handleChange}
+                        className="form-input"
+                        placeholder="Separate multiple with commas"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Current Medications</label>
+                      <input
+                        type="text"
+                        name="medications"
+                        value={formData.medications}
+                        onChange={handleChange}
+                        className="form-input"
+                        placeholder="Separate multiple with commas"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Disabilities / Special Needs</label>
+                    <input
+                      type="text"
+                      name="disabilities"
+                      value={formData.disabilities}
+                      onChange={handleChange}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="admissions-form-row">
+                    <div className="form-group">
+                      <label className="form-label">Doctor's Name</label>
+                      <input
+                        type="text"
+                        name="doctorName"
+                        value={formData.doctorName}
+                        onChange={handleChange}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Doctor's Phone</label>
+                      <input
+                        type="tel"
+                        name="doctorPhone"
+                        value={formData.doctorPhone}
+                        onChange={handleChange}
+                        className="form-input"
                       />
                     </div>
                   </div>

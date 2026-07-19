@@ -39,6 +39,21 @@ const invoiceSchema = new mongoose.Schema({
     category: {
       type: String,
       enum: ['tuition', 'registration', 'uniform', 'books', 'transport', 'feeding', 'development', 'other']
+    },
+    // Optional items (e.g. uniform) are listed for visibility but excluded
+    // from amountDue — carried over from the fee schedule's own isOptional
+    // flag so the invoice can display them distinctly, not as owed charges.
+    isOptional: {
+      type: Boolean,
+      default: false
+    },
+    // Whether this item currently counts toward amountDue. Mandatory items
+    // are always true; optional items start false and a parent (or staff)
+    // can opt in via the optional-items toggle route, which recomputes
+    // amountDue from whichever items are currently included.
+    included: {
+      type: Boolean,
+      default: true
     }
   }],
   amountDue: {
@@ -102,6 +117,13 @@ const invoiceSchema = new mongoose.Schema({
     }
   },
   notes: String,
+  // Which installment this invoice represents, when a fee schedule allows
+  // splitting the total across multiple invoices. Plain (non-installment)
+  // invoices are always installment 1 of 1.
+  installmentNumber: {
+    type: Number,
+    default: 1
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

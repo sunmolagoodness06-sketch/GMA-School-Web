@@ -57,3 +57,12 @@ export const sendAdmissionConfirmationSMS = async ({ phone, studentName, applica
     message: `GMA School: We've received ${studentName}'s application. Your application number is ${applicationNumber} — keep this for your records. We'll contact you soon.`
   });
 };
+
+const DECISION_LABELS_SMS = { admitted: 'admitted', rejected: 'not admitted', waitlisted: 'waitlisted' };
+
+export const sendAdmissionDecisionSMS = async ({ phone, studentName, applicationNumber, decision }) => {
+  await sendSMS({
+    to: phone,
+    message: `GMA School: ${studentName}'s application (${applicationNumber}) has been ${DECISION_LABELS_SMS[decision] || decision}. Check your email or contact the school for details.`
+  });
+};

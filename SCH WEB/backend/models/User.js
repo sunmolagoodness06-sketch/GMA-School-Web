@@ -31,6 +31,13 @@ const userSchema = new mongoose.Schema({
       return this.role === 'student' || this.role === 'parent';
     }
   },
+  // Further narrows a staff member's division assignment to specific classes
+  // (e.g. a class teacher). Only meaningful alongside `division` — empty
+  // means "all classes in the assigned division".
+  classes: {
+    type: [String],
+    default: []
+  },
   isActive: {
     type: Boolean,
     default: true

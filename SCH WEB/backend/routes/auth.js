@@ -135,7 +135,8 @@ router.post('/admin/register', authenticateToken, authorizeRoles('admin'), [
   body('phone').optional({ checkFalsy: true }).isString().withMessage('Please provide a valid phone number'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('role').isIn(['student', 'parent', 'staff', 'admin']).withMessage('Invalid role'),
-  body('division').optional().isIn(['nursery', 'primary', 'secondary', 'college']).withMessage('Invalid division')
+  body('division').optional().isIn(['nursery', 'primary', 'secondary', 'college']).withMessage('Invalid division'),
+  body('classes').optional().isArray().withMessage('Classes must be a list')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -146,7 +147,7 @@ router.post('/admin/register', authenticateToken, authorizeRoles('admin'), [
       });
     }
 
-    const { email, phone, password, role, division } = req.body;
+    const { email, phone, password, role, division, classes } = req.body;
 
     if (!email && !phone) {
       return res.status(400).json({
@@ -164,13 +165,25 @@ router.post('/admin/register', authenticateToken, authorizeRoles('admin'), [
       });
     }
 
+    // A staff member's class assignment only makes sense alongside a division
+    const cleanClasses = role === 'staff' && Array.isArray(classes)
+      ? classes.map((c) => c.trim()).filter(Boolean)
+      : [];
+    if (cleanClasses.length > 0 && !division) {
+      return res.status(400).json({
+        success: false,
+        message: 'Assign a division before assigning specific classes'
+      });
+    }
+
     // Create user
     const userData = {
       email: email || undefined,
       phone: phone || undefined,
       passwordHash: password, // Will be hashed by the model
       role,
-      division: (role === 'student' || role === 'parent') ? division : undefined
+      division: (role === 'student' || role === 'parent' || role === 'staff') ? division : undefined,
+      classes: cleanClasses
     };
 
     const user = await User.createUser(userData);
@@ -187,7 +200,8 @@ router.post('/admin/register', authenticateToken, authorizeRoles('admin'), [
         email: user.email,
         phone: user.phone,
         role: user.role,
-        division: user.division
+        division: user.division,
+        classes: user.classes
       }
     });
 

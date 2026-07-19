@@ -5,7 +5,9 @@ import PasswordField from '../components/PasswordField';
 
 const DIVISIONS = ['nursery', 'primary', 'secondary', 'college'];
 
-const emptyForm = { email: '', phone: '', password: '', role: 'staff', division: '' };
+const emptyForm = { email: '', phone: '', password: '', role: 'staff', division: '', classesText: '' };
+
+const toClassList = (text) => text.split(',').map((c) => c.trim()).filter(Boolean);
 
 const Staff = () => {
   const { apiCall } = useAuth();
@@ -17,6 +19,17 @@ const Staff = () => {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [editError, setEditError] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [knownClasses, setKnownClasses] = useState([]);
+
+  const fetchKnownClasses = async (division) => {
+    if (!division) { setKnownClasses([]); return; }
+    const { data } = await apiCall(`/admin/classes?division=${division}`);
+    if (data.success) setKnownClasses(data.data);
+  };
 
   const fetchStaff = async (page = 1) => {
     setIsLoading(true);
@@ -54,7 +67,14 @@ const Staff = () => {
     setIsSubmitting(true);
     setFormError('');
 
-    const payload = { ...form, email: form.email || undefined, phone: form.phone || undefined, division: form.division || undefined };
+    const { classesText, ...rest } = form;
+    const payload = {
+      ...rest,
+      email: form.email || undefined,
+      phone: form.phone || undefined,
+      division: form.division || undefined,
+      classes: form.role === 'staff' ? toClassList(classesText) : undefined
+    };
     const { data } = await apiCall('/auth/admin/register', {
       method: 'POST',
       body: JSON.stringify(payload)
@@ -70,8 +90,54 @@ const Staff = () => {
     setIsSubmitting(false);
   };
 
+  const openEditForm = (member) => {
+    setEditingStaff(member);
+    setEditForm({
+      email: member.email || '',
+      phone: member.phone || '',
+      role: member.role,
+      division: member.division || '',
+      classesText: (member.classes || []).join(', ')
+    });
+    setEditError('');
+    fetchKnownClasses(member.division);
+  };
+
+  const handleUpdateStaff = async (e) => {
+    e.preventDefault();
+    setIsSavingEdit(true);
+    setEditError('');
+
+    const { classesText, ...rest } = editForm;
+    const payload = {
+      ...rest,
+      email: editForm.email || undefined,
+      phone: editForm.phone || undefined,
+      division: editForm.division || undefined,
+      classes: editForm.role === 'staff' ? toClassList(classesText) : undefined
+    };
+
+    const { data } = await apiCall(`/admin/staff/${editingStaff._id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+
+    if (data.success) {
+      setStaff((prev) => prev.map((s) => (s._id === editingStaff._id ? data.data : s)));
+      setEditingStaff(null);
+      setEditForm(null);
+    } else {
+      setEditError(data.message || data.errors?.[0]?.msg || 'Failed to update staff account');
+    }
+    setIsSavingEdit(false);
+  };
+
   return (
     <div>
+      <datalist id="known-classes">
+        {knownClasses.map((c) => <option key={c} value={c} />)}
+      </datalist>
+
       <div className="page-header">
         <div>
           <h1>Staff</h1>
@@ -99,6 +165,7 @@ const Staff = () => {
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Role</th>
+                <th>Scope</th>
                 <th>Status</th>
                 <th>Last Login</th>
                 <th></th>
@@ -110,12 +177,26 @@ const Staff = () => {
                   <td>{s.email || '—'}</td>
                   <td>{s.phone || '—'}</td>
                   <td style={{ textTransform: 'capitalize' }}>{s.role}</td>
+                  <td>
+                    {s.role !== 'staff' || !s.division ? (
+                      <span className="text-secondary text-sm">Unrestricted</span>
+                    ) : (
+                      <span className="text-sm" style={{ textTransform: 'capitalize' }}>
+                        {s.division}{s.classes?.length ? ` — ${s.classes.join(', ')}` : ' (all classes)'}
+                      </span>
+                    )}
+                  </td>
                   <td><span className={`badge badge-${s.isActive ? 'approved' : 'rejected'}`}>{s.isActive ? 'Active' : 'Inactive'}</span></td>
                   <td>{s.lastLogin ? new Date(s.lastLogin).toLocaleDateString('en-GB') : 'Never'}</td>
                   <td>
-                    <button className="btn btn-outline btn-sm" onClick={() => handleToggleStatus(s._id, s.isActive)}>
-                      {s.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+                      <button className="btn btn-outline btn-sm" onClick={() => openEditForm(s)}>
+                        <Icon name="edit" size={14} /> Edit
+                      </button>
+                      <button className="btn btn-outline btn-sm" onClick={() => handleToggleStatus(s._id, s.isActive)}>
+                        {s.isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -180,8 +261,120 @@ const Staff = () => {
                 />
               </div>
 
+              {form.role === 'staff' && (
+                <>
+                  <div className="form-group">
+                    <label>Division (optional)</label>
+                    <select
+                      value={form.division}
+                      onChange={(e) => { setForm({ ...form, division: e.target.value, classesText: e.target.value ? form.classesText : '' }); fetchKnownClasses(e.target.value); }}
+                    >
+                      <option value="">None — unrestricted access</option>
+                      {DIVISIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  {form.division && (
+                    <div className="form-group">
+                      <label>Classes (optional)</label>
+                      <input
+                        type="text"
+                        list="known-classes"
+                        placeholder="e.g. Primary 3, Primary 4"
+                        value={form.classesText}
+                        onChange={(e) => setForm({ ...form, classesText: e.target.value })}
+                      />
+                      <p className="text-secondary text-sm" style={{ marginTop: 'var(--space-2)' }}>
+                        {knownClasses.length > 0
+                          ? `Comma-separated. Must match a student's class exactly — currently in use: ${knownClasses.join(', ')}.`
+                          : `Comma-separated. No students are in the ${form.division} division yet, so there's nothing to match against — double check the spelling once students exist.`}
+                        {' '}Leave blank to give access to all classes in the {form.division} division.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
               <button type="submit" className="btn btn-primary btn-full" disabled={isSubmitting}>
                 {isSubmitting ? <Icon name="loader" size={18} className="spinning" /> : 'Create Staff Account'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingStaff && editForm && (
+        <div className="modal-backdrop" onClick={() => setEditingStaff(null)}>
+          <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Edit Staff</h2>
+              <button className="modal-close-btn" onClick={() => setEditingStaff(null)}><Icon name="close" size={22} /></button>
+            </div>
+
+            <form onSubmit={handleUpdateStaff}>
+              {editError && (
+                <div className="admin-error-message">
+                  <Icon name="alertCircle" size={18} />
+                  <span>{editError}</span>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>Role</label>
+                <select value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}>
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Email (optional)</label>
+                  <input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Phone (optional)</label>
+                  <input type="text" value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+                </div>
+              </div>
+              <p className="text-secondary text-sm" style={{ marginTop: '-8px', marginBottom: 'var(--space-4)' }}>
+                At least one of email or phone is required.
+              </p>
+
+              {editForm.role === 'staff' && (
+                <>
+                  <div className="form-group">
+                    <label>Division (optional)</label>
+                    <select
+                      value={editForm.division}
+                      onChange={(e) => { setEditForm({ ...editForm, division: e.target.value, classesText: e.target.value ? editForm.classesText : '' }); fetchKnownClasses(e.target.value); }}
+                    >
+                      <option value="">None — unrestricted access</option>
+                      {DIVISIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  {editForm.division && (
+                    <div className="form-group">
+                      <label>Classes (optional)</label>
+                      <input
+                        type="text"
+                        list="known-classes"
+                        placeholder="e.g. Primary 3, Primary 4"
+                        value={editForm.classesText}
+                        onChange={(e) => setEditForm({ ...editForm, classesText: e.target.value })}
+                      />
+                      <p className="text-secondary text-sm" style={{ marginTop: 'var(--space-2)' }}>
+                        {knownClasses.length > 0
+                          ? `Comma-separated. Must match a student's class exactly — currently in use: ${knownClasses.join(', ')}.`
+                          : `Comma-separated. No students are in the ${editForm.division} division yet, so there's nothing to match against — double check the spelling once students exist.`}
+                        {' '}Leave blank to give access to all classes in the {editForm.division} division.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <button type="submit" className="btn btn-primary btn-full" disabled={isSavingEdit}>
+                {isSavingEdit ? <Icon name="loader" size={18} className="spinning" /> : 'Save Changes'}
               </button>
             </form>
           </div>

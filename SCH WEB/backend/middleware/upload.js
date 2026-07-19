@@ -45,6 +45,18 @@ const reportCardUpload = multer({
   limits: { fileSize: MAX_FILE_SIZE }
 }).single('reportCard');
 
+const studentPhotoUpload = multer({
+  storage: createStorage('student-photos'),
+  fileFilter,
+  limits: { fileSize: MAX_FILE_SIZE }
+}).single('photo');
+
+const noticeAttachmentsUpload = multer({
+  storage: createStorage('notice-attachments'),
+  fileFilter,
+  limits: { fileSize: MAX_FILE_SIZE }
+}).array('attachments', 5);
+
 // Wraps multer middleware so upload errors (oversized/wrong-type files)
 // return a clean JSON response instead of an unhandled error.
 const withUploadErrorHandling = (uploadMiddleware) => (req, res, next) => {
@@ -65,3 +77,5 @@ const withUploadErrorHandling = (uploadMiddleware) => (req, res, next) => {
 export const uploadAdmissionDocuments = withUploadErrorHandling(admissionDocumentsUpload);
 export const uploadCoverLetter = withUploadErrorHandling(coverLetterUpload);
 export const uploadReportCard = withUploadErrorHandling(reportCardUpload);
+export const uploadStudentPhoto = withUploadErrorHandling(studentPhotoUpload);
+export const uploadNoticeAttachments = withUploadErrorHandling(noticeAttachmentsUpload);

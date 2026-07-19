@@ -84,8 +84,8 @@ router.get('/dashboard', authenticateToken, authorizeRoles('student', 'parent', 
           isActive: true
         }).limit(5);
 
-    // Get recent notices for student's division
-    const recentNotices = await Notice.findForUser(req.userRole, student.division).limit(5);
+    // Get recent notices for student's division/class
+    const recentNotices = await Notice.findForUser(req.userRole, student.division, [student.class]).limit(5);
 
     // Calculate dashboard stats
     const totalOwed = outstandingInvoices.reduce((sum, invoice) => sum + invoice.balance, 0);
@@ -137,7 +137,10 @@ router.get('/:studentId/report-cards', authenticateToken, authorizeStudentAccess
     const { studentId } = req.params;
     const { session, term } = req.query;
 
+    // Staff/admin previewing a student's report cards can see drafts too;
+    // students/parents only ever see published ones.
     let query = { studentId, isActive: true };
+    if (!['staff', 'admin'].includes(req.userRole)) query.isPublished = true;
     if (session) query.session = session;
     if (term) query.term = term;
 
@@ -206,6 +209,83 @@ router.get('/:studentId/invoices', authenticateToken, authorizeStudentAccess, as
   }
 });
 
+// Opt an optional fee item (e.g. uniform) in or out of an invoice's amount
+// due. Mandatory items can't be toggled — only ones the fee schedule marked
+// optional. Recomputes amountDue/balance from whichever items are currently
+// included, preserving any discount already applied.
+router.patch('/:studentId/invoices/:invoiceId/optional-items', authenticateToken, authorizeStudentAccess, [
+  body('itemIndex').isInt({ min: 0 }).withMessage('Valid item index is required'),
+  body('included').isBoolean().withMessage('included must be true or false')
+], async (req, res) => {
+  try {
+    if (req.userRole === 'student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Students do not have access to billing information'
+      });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { studentId, invoiceId } = req.params;
+    const { itemIndex, included } = req.body;
+
+    const invoice = await Invoice.findOne({ _id: invoiceId, studentId, isActive: true });
+    if (!invoice) {
+      return res.status(404).json({ success: false, message: 'Invoice not found' });
+    }
+
+    // "Paid" just means the currently-included items are settled — a parent
+    // can still opt into a new optional item afterward (which will correctly
+    // reopen a balance and move the status off "paid"). Only a cancelled
+    // invoice is truly locked.
+    if (invoice.status === 'cancelled') {
+      return res.status(400).json({ success: false, message: 'This invoice can no longer be modified' });
+    }
+
+    const item = invoice.feeItems[itemIndex];
+    if (!item) {
+      return res.status(404).json({ success: false, message: 'Fee item not found' });
+    }
+    if (!item.isOptional) {
+      return res.status(400).json({ success: false, message: 'Only optional fee items can be toggled' });
+    }
+
+    const wasIncluded = item.included;
+    if (wasIncluded === included) {
+      return res.json({ success: true, message: 'No change', data: invoice });
+    }
+    item.included = included;
+
+    // Adjust amountDue by just this item's amount rather than recomputing
+    // from the full fee catalog — on an installment invoice, amountDue is
+    // only a fractional share of the mandatory total, and re-deriving it
+    // from feeItems' full face-value amounts would silently re-add the
+    // *entire* mandatory portion to this one installment.
+    invoice.amountDue += included ? item.amount : -item.amount;
+
+    await invoice.save();
+    await invoice.populate([
+      { path: 'studentId', select: 'fullName regNumber division class' },
+      { path: 'feeScheduleId', select: 'division class term session' },
+      { path: 'paymentHistory.receivedBy', select: 'email phone' },
+      { path: 'discount.authorizedBy', select: 'email phone' }
+    ]);
+
+    res.json({ success: true, message: 'Invoice updated', data: invoice });
+
+  } catch (error) {
+    console.error('Optional fee item toggle error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while updating the invoice'
+    });
+  }
+});
+
 // Get student notices
 router.get('/:studentId/notices', authenticateToken, authorizeStudentAccess, async (req, res) => {
   try {
@@ -221,7 +301,7 @@ router.get('/:studentId/notices', authenticateToken, authorizeStudentAccess, asy
       });
     }
 
-    let notices = await Notice.findForUser(req.userRole, student.division);
+    let notices = await Notice.findForUser(req.userRole, student.division, [student.class]);
 
     // Filter by category if specified
     if (category && category !== 'all') {
