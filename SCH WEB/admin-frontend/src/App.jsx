@@ -36,7 +36,14 @@ function App() {
               <Route path="career-applications" element={<CareerApplications />} />
               <Route path="messages" element={<Messages />} />
               <Route path="students" element={<Students />} />
-              <Route path="staff" element={<Staff />} />
+              <Route
+                path="staff"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <Staff />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="notices" element={<Notices />} />
               <Route path="billing" element={<Billing />} />
               <Route path="report-cards" element={<ReportCards />} />

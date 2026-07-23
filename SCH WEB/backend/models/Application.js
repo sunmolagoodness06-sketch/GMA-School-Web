@@ -247,13 +247,12 @@ applicationSchema.virtual('age').get(function() {
 });
 
 // Static method to generate application number
-applicationSchema.statics.generateApplicationNumber = async function(session) {
-  const year = session.split('/')[0];
+applicationSchema.statics.generateApplicationNumber = async function() {
   const count = await this.countDocuments({
-    applicationNumber: { $regex: `^APP/${year}/` }
+    applicationNumber: { $regex: '^APP/' }
   });
-  
-  return `APP/${year}/${(count + 1).toString().padStart(5, '0')}`;
+
+  return `APP/${(count + 1).toString().padStart(5, '0')}`;
 };
 
 // Static method to find applications by status
@@ -281,18 +280,19 @@ applicationSchema.methods.addCommunication = function(communicationData) {
 };
 
 // Method to update status
-applicationSchema.methods.updateStatus = function(newStatus, userId, remarks = null) {
+applicationSchema.methods.updateStatus = function(newStatus, userId, remarks = null, conditions = []) {
   this.status = newStatus;
-  
+
   if (['approved', 'rejected', 'waitlisted'].includes(newStatus)) {
     this.admissionDecision = {
       decision: newStatus === 'approved' ? 'admitted' : newStatus,
       decisionDate: new Date(),
       decisionBy: userId,
-      remarks
+      remarks,
+      conditions
     };
   }
-  
+
   return this.save();
 };
 

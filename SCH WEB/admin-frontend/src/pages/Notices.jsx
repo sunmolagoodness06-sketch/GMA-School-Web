@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useDialog } from '../contexts/DialogContext';
 import Icon from '../components/Icon';
+import { API_BASE_URL } from '../config/api';
 
 const CATEGORIES = ['general', 'academic', 'fees', 'events', 'holidays', 'emergency', 'maintenance', 'exam', 'admission'];
 const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
@@ -11,14 +12,20 @@ const ROLES = ['student', 'parent', 'staff', 'admin', 'all'];
 const emptyForm = {
   title: '',
   body: '',
+  summary: '',
   category: 'general',
   priority: 'medium',
   expiryDate: '',
-  targetAudience: { roles: ['all'], divisions: ['all'] }
+  targetAudience: { roles: ['all'], divisions: ['all'], classes: [] },
+  classesText: '',
+  tagsText: '',
+  relatedEvent: '',
+  reminderDate: '',
+  attachmentFiles: []
 };
 
 const Notices = () => {
-  const { apiCall } = useAuth();
+  const { apiCall, token } = useAuth();
   const { confirmDialog } = useDialog();
   const [notices, setNotices] = useState([]);
   const [pagination, setPagination] = useState({ current: 1, total: 1 });
@@ -28,6 +35,15 @@ const Notices = () => {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [knownClasses, setKnownClasses] = useState([]);
+
+  const fetchKnownClasses = async (divisions) => {
+    const specific = divisions.filter((d) => d !== 'all');
+    if (specific.length === 0) { setKnownClasses([]); return; }
+    const results = await Promise.all(specific.map((d) => apiCall(`/admin/classes?division=${d}`)));
+    const merged = [...new Set(results.flatMap((r) => r.data.data || []))];
+    setKnownClasses(merged);
+  };
 
   const fetchNotices = async (page = 1) => {
     setIsLoading(true);
@@ -49,6 +65,16 @@ const Notices = () => {
     const { data } = await apiCall(`/admin/notices/${noticeId}/publish`, {
       method: 'PATCH',
       body: JSON.stringify({ isPublished: !isPublished })
+    });
+    if (data.success) {
+      setNotices((prev) => prev.map((n) => (n._id === noticeId ? data.data : n)));
+    }
+  };
+
+  const togglePin = async (noticeId, isPinned) => {
+    const { data } = await apiCall(`/admin/notices/${noticeId}/pin`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isPinned: !isPinned })
     });
     if (data.success) {
       setNotices((prev) => prev.map((n) => (n._id === noticeId ? data.data : n)));
@@ -80,6 +106,8 @@ const Notices = () => {
         next = [...current.filter((v) => v !== 'all'), value];
       }
 
+      if (field === 'divisions') fetchKnownClasses(next);
+
       return { ...prev, targetAudience: { ...prev.targetAudience, [field]: next } };
     });
   };
@@ -89,17 +117,43 @@ const Notices = () => {
     setIsSubmitting(true);
     setFormError('');
 
-    const { data } = await apiCall('/admin/notices', {
-      method: 'POST',
-      body: JSON.stringify(form)
-    });
+    const classes = form.classesText.split(',').map((c) => c.trim()).filter(Boolean);
+    const tags = form.tagsText.split(',').map((t) => t.trim()).filter(Boolean);
 
-    if (data.success) {
-      setShowForm(false);
-      setForm(emptyForm);
-      fetchNotices(1);
-    } else {
-      setFormError(data.message || data.errors?.[0]?.msg || 'Failed to create notice');
+    const formData = new FormData();
+    formData.append('title', form.title);
+    formData.append('body', form.body);
+    formData.append('category', form.category);
+    formData.append('priority', form.priority);
+    formData.append('expiryDate', form.expiryDate);
+    if (form.summary) formData.append('summary', form.summary);
+    formData.append('targetAudience', JSON.stringify({ ...form.targetAudience, classes }));
+    if (tags.length > 0 || form.relatedEvent || form.reminderDate) {
+      formData.append('metadata', JSON.stringify({
+        tags,
+        relatedEvent: form.relatedEvent || undefined,
+        reminderDate: form.reminderDate || undefined
+      }));
+    }
+    form.attachmentFiles.forEach((file) => formData.append('attachments', file));
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/notices`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setShowForm(false);
+        setForm(emptyForm);
+        fetchNotices(1);
+      } else {
+        setFormError(data.message || data.errors?.[0]?.msg || 'Failed to create notice');
+      }
+    } catch (err) {
+      setFormError('Network error. Please try again.');
     }
     setIsSubmitting(false);
   };
@@ -137,6 +191,8 @@ const Notices = () => {
                 <th>Category</th>
                 <th>Priority</th>
                 <th>Expires</th>
+                <th>Views</th>
+                <th>Last Modified</th>
                 <th>Status</th>
                 <th></th>
               </tr>
@@ -144,14 +200,19 @@ const Notices = () => {
             <tbody>
               {notices.map((n) => (
                 <tr key={n._id}>
-                  <td>{n.title}</td>
+                  <td>{n.isPinned && <Icon name="alertCircle" size={12} className="text-secondary" />} {n.title}</td>
                   <td style={{ textTransform: 'capitalize' }}>{n.category}</td>
                   <td style={{ textTransform: 'capitalize' }}>{n.priority}</td>
                   <td>{new Date(n.expiryDate).toLocaleDateString('en-GB')}</td>
+                  <td>{n.viewCount || 0}</td>
+                  <td className="text-secondary text-sm">{n.lastModifiedBy ? (n.lastModifiedBy.email || n.lastModifiedBy.phone) : '—'}</td>
                   <td><span className={`badge badge-${n.isPublished ? 'approved' : 'pending'}`}>{n.isPublished ? 'Published' : 'Draft'}</span></td>
-                  <td style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <td style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
                     <button className="btn btn-outline btn-sm" onClick={() => togglePublish(n._id, n.isPublished)}>
                       {n.isPublished ? 'Unpublish' : 'Publish'}
+                    </button>
+                    <button className="btn btn-outline btn-sm" onClick={() => togglePin(n._id, n.isPinned)}>
+                      {n.isPinned ? 'Unpin' : 'Pin'}
                     </button>
                     <button className="btn btn-danger btn-sm" onClick={() => deleteNotice(n._id)}>Delete</button>
                   </td>
@@ -194,6 +255,11 @@ const Notices = () => {
               <div className="form-group">
                 <label>Body</label>
                 <textarea rows={5} required minLength={10} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
+              </div>
+
+              <div className="form-group">
+                <label>Summary (optional — shown in short previews instead of the truncated body)</label>
+                <textarea rows={2} maxLength={300} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
               </div>
 
               <div className="form-row">
@@ -246,6 +312,50 @@ const Notices = () => {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label>Visible to (specific classes, optional — comma-separated, leave blank for all classes in the selected division(s))</label>
+                <input
+                  type="text"
+                  list="known-notice-classes"
+                  placeholder="e.g. Primary 3, Primary 4"
+                  value={form.classesText}
+                  onChange={(e) => setForm({ ...form, classesText: e.target.value })}
+                />
+                {knownClasses.length > 0 && (
+                  <p className="text-secondary text-sm" style={{ marginTop: 'var(--space-1)' }}>
+                    Must match a student's class exactly — currently in use: {knownClasses.join(', ')}.
+                  </p>
+                )}
+                <datalist id="known-notice-classes">
+                  {knownClasses.map((c) => <option key={c} value={c} />)}
+                </datalist>
+              </div>
+
+              <h4 style={{ marginBottom: 'var(--space-3)' }}>Extra (optional)</h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Tags (comma-separated)</label>
+                  <input type="text" value={form.tagsText} onChange={(e) => setForm({ ...form, tagsText: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Related Event</label>
+                  <input type="text" value={form.relatedEvent} onChange={(e) => setForm({ ...form, relatedEvent: e.target.value })} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Reminder Date</label>
+                <input type="date" value={form.reminderDate} onChange={(e) => setForm({ ...form, reminderDate: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label>Attachments (up to 5 — PDF, JPG, PNG, WEBP)</label>
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,image/jpeg,image/png,image/webp"
+                  onChange={(e) => setForm({ ...form, attachmentFiles: Array.from(e.target.files || []) })}
+                />
               </div>
 
               <button type="submit" className="btn btn-primary btn-full" disabled={isSubmitting}>

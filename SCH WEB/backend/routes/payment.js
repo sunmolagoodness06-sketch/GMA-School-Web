@@ -14,7 +14,10 @@ const PAYSTACK_PUBLIC_KEY = process.env.PAYSTACK_PUBLIC_KEY || 'pk_test_your_pub
 router.post('/initialize', authenticateToken, [
   body('invoiceId').isMongoId().withMessage('Valid invoice ID is required'),
   body('amount').isNumeric().withMessage('Valid amount is required'),
-  body('callback_url').optional().isURL().withMessage('Valid callback URL required')
+  // require_tld: false — otherwise this rejects http://localhost:... in
+  // local development (no recognized top-level domain), which would block
+  // every payment attempt outside of production.
+  body('callback_url').optional().isURL({ require_tld: false }).withMessage('Valid callback URL required')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -71,7 +74,10 @@ router.post('/initialize', authenticateToken, [
       email: invoice.studentId.parentInfo.email,
       amount: Math.round(requestedAmount * 100), // Convert to kobo
       currency: 'NGN',
-      reference: `GMA_${invoice.invoiceNumber}_${Date.now()}`,
+      // Paystack references may only contain alphanumerics plus -, ., = —
+      // invoiceNumber has slashes (e.g. "INV/2025/000002"), which Paystack
+      // rejects outright ("Invalid character in transaction reference").
+      reference: `GMA_${invoice.invoiceNumber.replace(/[^a-zA-Z0-9-.=]/g, '-')}_${Date.now()}`,
       callback_url: callback_url || `${process.env.FRONTEND_URL || 'http://localhost:3000'}/portal/payment/callback`,
       metadata: {
         invoiceId: invoice._id.toString(),

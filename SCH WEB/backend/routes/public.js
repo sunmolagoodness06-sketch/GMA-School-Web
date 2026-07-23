@@ -62,7 +62,10 @@ router.post('/apply', uploadAdmissionDocuments, [
   body('fatherEmail').optional({ checkFalsy: true }).isEmail().withMessage('Please provide a valid email'),
   body('fatherPhone').trim().isLength({ min: 10 }).withMessage('Father\'s phone number is required'),
   body('motherName').trim().isLength({ min: 2 }).withMessage('Mother\'s name is required'),
-  body('motherPhone').trim().isLength({ min: 10 }).withMessage('Mother\'s phone number is required')
+  body('motherPhone').trim().isLength({ min: 10 }).withMessage('Mother\'s phone number is required'),
+  body('guardianEmail').optional({ checkFalsy: true }).isEmail().withMessage('Please provide a valid guardian email'),
+  body('bloodGroup').optional({ checkFalsy: true }).isIn(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']).withMessage('Invalid blood group'),
+  body('genotype').optional({ checkFalsy: true }).isIn(['AA', 'AS', 'SS', 'AC']).withMessage('Invalid genotype')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -110,13 +113,16 @@ router.post('/apply', uploadAdmissionDocuments, [
     const {
       firstName, middleName, lastName, dateOfBirth, gender,
       divisionApplied, classApplied, sessionApplied,
-      fatherName, fatherEmail, fatherPhone,
-      motherName, motherEmail, motherPhone
+      fatherName, fatherEmail, fatherPhone, fatherOccupation, fatherAddress,
+      motherName, motherEmail, motherPhone, motherOccupation, motherAddress,
+      guardianName, guardianRelationship, guardianPhone, guardianEmail, guardianAddress,
+      previousSchoolName, previousSchoolAddress, previousSchoolLastClass, previousSchoolReasonForLeaving,
+      bloodGroup, genotype, allergies, medications, disabilities, doctorName, doctorPhone
     } = req.body;
 
-    const applicationNumber = await Application.generateApplicationNumber(
-      sessionApplied || '2024/2025'
-    );
+    const applicationNumber = await Application.generateApplicationNumber();
+
+    const toList = (value) => (value ? value.split(',').map((v) => v.trim()).filter(Boolean) : []);
 
     const application = new Application({
       applicantName: {
@@ -133,13 +139,43 @@ router.post('/apply', uploadAdmissionDocuments, [
         father: {
           name: fatherName,
           phone: fatherPhone,
-          ...(fatherEmail && { email: fatherEmail })
+          ...(fatherEmail && { email: fatherEmail }),
+          ...(fatherOccupation && { occupation: fatherOccupation }),
+          ...(fatherAddress && { address: fatherAddress })
         },
         mother: {
           name: motherName,
           phone: motherPhone,
-          ...(motherEmail && { email: motherEmail })
+          ...(motherEmail && { email: motherEmail }),
+          ...(motherOccupation && { occupation: motherOccupation }),
+          ...(motherAddress && { address: motherAddress })
+        },
+        ...(guardianName && {
+          guardian: {
+            name: guardianName,
+            ...(guardianRelationship && { relationship: guardianRelationship }),
+            ...(guardianPhone && { phone: guardianPhone }),
+            ...(guardianEmail && { email: guardianEmail }),
+            ...(guardianAddress && { address: guardianAddress })
+          }
+        })
+      },
+      ...((previousSchoolName || previousSchoolAddress || previousSchoolLastClass || previousSchoolReasonForLeaving) && {
+        previousSchool: {
+          ...(previousSchoolName && { name: previousSchoolName }),
+          ...(previousSchoolAddress && { address: previousSchoolAddress }),
+          ...(previousSchoolLastClass && { lastClass: previousSchoolLastClass }),
+          ...(previousSchoolReasonForLeaving && { reasonForLeaving: previousSchoolReasonForLeaving })
         }
+      }),
+      medicalInfo: {
+        ...(bloodGroup && { bloodGroup }),
+        ...(genotype && { genotype }),
+        allergies: toList(allergies),
+        medications: toList(medications),
+        ...(disabilities && { disabilities }),
+        ...(doctorName && { doctorName }),
+        ...(doctorPhone && { doctorPhone })
       },
       documents,
       applicationNumber,

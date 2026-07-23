@@ -141,6 +141,18 @@ const Notices = () => {
                   {isExpanded && (
                     <div style={{ padding: '0 var(--space-5) var(--space-5)' }}>
                       <p style={{ whiteSpace: 'pre-wrap' }}>{notice.body}</p>
+                      {notice.attachments?.length > 0 && (
+                        <div style={{ marginBottom: 'var(--space-4)' }}>
+                          <strong style={{ fontSize: 'var(--text-sm)' }}>Attachments</strong>
+                          <ul style={{ marginTop: 'var(--space-2)', paddingLeft: 'var(--space-5)' }}>
+                            {notice.attachments.map((att) => (
+                              <li key={att.fileUrl}>
+                                <a href={att.fileUrl} target="_blank" rel="noreferrer">{att.fileName}</a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       {notice.acknowledgmentRequired && (
                         hasAcknowledged(notice) ? (
                           <span className="success-message" style={{ display: 'inline-flex' }}>

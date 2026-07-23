@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { to: '/career-applications', label: 'Career Applications', icon: 'briefcase' },
   { to: '/messages', label: 'Messages', icon: 'mail' },
   { to: '/students', label: 'Students', icon: 'users' },
-  { to: '/staff', label: 'Staff', icon: 'userCog' },
+  { to: '/staff', label: 'Staff', icon: 'userCog', adminOnly: true },
   { to: '/notices', label: 'Notices', icon: 'bell' },
   { to: '/billing', label: 'Billing', icon: 'creditCard' },
   { to: '/report-cards', label: 'Report Cards', icon: 'fileText' },
@@ -21,6 +21,11 @@ const AdminLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Staff management (viewing accounts, and especially creating new
+  // admin/staff logins) is an admin-only capability on the backend — hide
+  // the nav entry for staff so it's not a dead link that 403s on click.
+  const visibleNavItems = NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === 'admin');
 
   const handleLogout = () => {
     logout();
@@ -35,7 +40,7 @@ const AdminLayout = () => {
           <span>GMA Admin</span>
         </div>
         <nav className="admin-nav">
-          {NAV_ITEMS.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

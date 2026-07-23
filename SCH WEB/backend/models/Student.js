@@ -110,6 +110,15 @@ const studentSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  status: {
+    type: String,
+    enum: ['active', 'graduated'],
+    default: 'active'
+  },
+  graduatedAt: {
+    type: Date,
+    default: null
+  },
   notes: [String] // Admin notes about the student
 }, {
   timestamps: true
@@ -138,37 +147,44 @@ studentSchema.virtual('age').get(function() {
 });
 
 // Static method to generate registration number
-studentSchema.statics.generateRegNumber = async function(division, session) {
-  const year = session.split('/')[0];
+studentSchema.statics.generateRegNumber = async function(division) {
   const divisionCode = {
     'nursery': 'NUR',
     'primary': 'PRI',
     'secondary': 'SEC',
     'college': 'COL'
   }[division];
-  
-  // Find the last student in this division for this session
+
+  // Find the last student in this division, regardless of session — the
+  // number no longer resets each year
   const lastStudent = await this.findOne({
     division,
-    session,
-    regNumber: { $regex: `^GMA/${divisionCode}/${year}/` }
+    regNumber: { $regex: `^GMA/${divisionCode}/` }
   }).sort({ regNumber: -1 });
-  
+
   let nextNumber = 1;
   if (lastStudent) {
     const lastNumber = parseInt(lastStudent.regNumber.split('/').pop());
     nextNumber = lastNumber + 1;
   }
-  
-  return `GMA/${divisionCode}/${year}/${nextNumber.toString().padStart(4, '0')}`;
+
+  return `GMA/${divisionCode}/${nextNumber.toString().padStart(4, '0')}`;
 };
 
-// Static method to find students by division and class
-studentSchema.statics.findByDivisionAndClass = function(division, className, session) {
+// Static method to find students currently enrolled in a division/class —
+// used for things like billing, where "who's in this class right now"
+// matters, not what session string happens to be on their own record (that
+// field is independently editable per student and drifts out of sync with
+// whatever a fee schedule's session is labelled, so it's deliberately not
+// part of this filter).
+studentSchema.statics.findByDivisionAndClass = function(division, className) {
   return this.find({
     division,
     class: className,
-    session,
+    // $ne (not the stricter 'active' equality) so student records that
+    // predate the status field — which have no status key stored at all —
+    // still match; only explicitly graduated students are excluded.
+    status: { $ne: 'graduated' },
     isActive: true
   }).populate('userId', 'email isActive').sort({ fullName: 1 });
 };

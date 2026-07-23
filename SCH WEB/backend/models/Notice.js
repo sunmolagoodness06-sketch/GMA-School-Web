@@ -149,7 +149,7 @@ noticeSchema.virtual('daysRemaining').get(function() {
 });
 
 // Static method to find active notices for a user
-noticeSchema.statics.findForUser = function(userRole, userDivision = null) {
+noticeSchema.statics.findForUser = function(userRole, userDivision = null, userClasses = []) {
   const now = new Date();
   const query = {
     isPublished: true,
@@ -166,14 +166,29 @@ noticeSchema.statics.findForUser = function(userRole, userDivision = null) {
     ]
   };
 
+  const andClauses = [];
+
   if (userDivision && userRole !== 'admin') {
-    query.$and = [
-      { $or: [
+    andClauses.push({
+      $or: [
         { 'targetAudience.divisions': 'all' },
         { 'targetAudience.divisions': userDivision }
-      ] }
-    ];
+      ]
+    });
   }
+
+  // A notice with no classes listed applies to the whole division; one that
+  // does list classes only reaches users in one of those specific classes.
+  if (userClasses.length > 0 && userRole !== 'admin') {
+    andClauses.push({
+      $or: [
+        { 'targetAudience.classes': { $size: 0 } },
+        { 'targetAudience.classes': { $in: userClasses } }
+      ]
+    });
+  }
+
+  if (andClauses.length > 0) query.$and = andClauses;
 
   return this.find(query).sort({ isPinned: -1, priority: -1, publishDate: -1 });
 };
